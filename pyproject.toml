@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "etf-constituents"
+version = "0.1.0"
+description = "Scrape ETF data"
+authors = ["Daniel Steman <daniel-steman@live.nl>"]
+readme = "README.md"
+packages = [{include = "etf_constituents"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+Scrapy = "^2.9.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

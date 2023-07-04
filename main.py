@@ -1,7 +1,13 @@
-import requests
+import scrapy
 
-url = "https://www.ishares.com/uk/individual/en/products/251781"
 
-res = requests.get(url)
+class BlogSpider(scrapy.Spider):
+    name = "blogspider"
+    start_urls = ["https://www.zyte.com/blog/"]
 
-print(res.content)
+    def parse(self, response):
+        for title in response.css(".oxy-post-title"):
+            yield {"title": title.css("::text").get()}
+
+        for next_page in response.css("a.next"):
+            yield response.follow(next_page, self.parse)
