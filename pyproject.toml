@@ -9,6 +9,7 @@ packages = [{include = "etf_constituents"}]
 [tool.poetry.dependencies]
 python = "^3.10"
 Scrapy = "^2.9.0"
+selenium = "^4.10.0"
 
 
 [build-system]

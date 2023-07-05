@@ -45,11 +45,13 @@ class IsharesSpider(scrapy.Spider):
         yield scrapy.Request(url=url, body=html, callback=self.parse)
 
     def parse(self, response):
-        table_xpath = '//*[@id="allHoldingsTable"]/tbody/tr[1]'
-        element = response.xpath(table_xpath).get()
-        print(f"*********Result: {element}")
+        table_xpath = '//*[@id="exposureBreakdowns"]/h2'
+        # table_xpath = '//*[@id="allHoldingsTable"]/tbody/tr[1]'
+        element = response.xpath(table_xpath).extract_first()
 
-        # yield {"table_html": table_html}
+        print(response.status)
+
+        yield {"element": element}
 
         # page = response.url.split("/")[-2]
         # filename = f"quotes-{page}.html"
