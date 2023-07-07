@@ -1,13 +1,9 @@
-import scrapy
+import httpx
+import json
 
+url = "https://www.ishares.com/nl/particuliere-belegger/nl/producten/251781/ishares-euro-stoxx-50-ucits-etf-inc-fund/1497735778849.ajax?tab=all&fileType=json"
 
-class BlogSpider(scrapy.Spider):
-    name = "blogspider"
-    start_urls = ["https://www.zyte.com/blog/"]
+res = httpx.get(url)
+holdings = json.loads(res.content)["aaData"]
 
-    def parse(self, response):
-        for title in response.css(".oxy-post-title"):
-            yield {"title": title.css("::text").get()}
-
-        for next_page in response.css("a.next"):
-            yield response.follow(next_page, self.parse)
+print(holdings)

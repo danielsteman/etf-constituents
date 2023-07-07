@@ -8,7 +8,7 @@ class QuotesSpider(scrapy.Spider):
 
     def start_requests(self):
         urls = [
-            "https://www.degiro.nl/tarieven/etf-kernselectie",
+            "https://quotes.toscrape.com/page/1/",
         ]
         for url in urls:
             yield scrapy.Request(url=url, callback=self.parse)
@@ -16,5 +16,9 @@ class QuotesSpider(scrapy.Spider):
     def parse(self, response):
         page = response.url.split("/")[-2]
         filename = f"quotes-{page}.html"
-        Path(filename).write_bytes(response.body)
-        self.log(f"Saved file {filename}")
+        xpath = "/html/body/div/div[2]/div[1]/div[1]/span[1]"
+        el = response.selector.xpath(xpath).get()
+        print(el)
+
+        # Path(filename).write_bytes(response.body)
+        # self.log(f"Saved file {filename}")

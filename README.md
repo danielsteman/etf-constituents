@@ -19,3 +19,7 @@ Check if the installation has been successful:
 ```
 google-chrome-stable --version
 ```
+
+# Getting data from the source
+
+It's always better to get data straight from the source because it will not depend on the DOM being rendered in the same way over time, which is something outside of your control. Luckily, it's possible to reverse engineer iShares API calls.
