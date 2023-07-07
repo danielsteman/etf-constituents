@@ -33,4 +33,4 @@ It's always better to get data straight from the source because it will not depe
 [Fund holding data API call](https://www.ishares.com/us/products/239726/ishares-core-sp-500-etf/1467271812596.ajax?tab=all&fileType=json&asOfDate=20230705)
 `https://www.ishares.com/us/products/239726/ishares-core-sp-500-etf/1467271812596.ajax?tab=all&fileType=json&asOfDate=20230705`
 
-The id (e.g. `1467271812596` in this example) in the request URL seems arbitrary.
+The id (e.g. `1467271812596` in this example) in the request URL seems arbitrary. We can get this id for each fund by capturing network requests.

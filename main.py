@@ -1,33 +1,54 @@
-from dataclasses import dataclass
-from typing import Any, List
-import httpx
-import json
-
-url = "https://www.ishares.com/nl/particuliere-belegger/nl/producten/251781/ishares-euro-stoxx-50-ucits-etf-inc-fund/1497735778849.ajax?tab=all&fileType=json"
-
-res = httpx.get(url)
-holdings = json.loads(res.content)["aaData"]
+import logging
+from seleniumwire import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 
-class IsharesFundHoldings:
-    def __init__(self, raw_data: List[Any]) -> None:
-        self.ticker = raw_data[0]
-        self.name = raw_data[1]
-        self.sector = raw_data[2]
-        self.instrument = raw_data[3]
-        self.market_value = raw_data[4]["raw"]
-        self.weight = raw_data[5]["raw"]
-        self.nominal_value = raw_data[6]["raw"]
-        self.isin = raw_data[7]
-        self.currency = raw_data[12]
-        self.exchange = raw_data[11]
+url = "https://www.ishares.com/nl/particuliere-belegger/nl/producten/251781/ishares-euro-stoxx-50-ucits-etf-inc-fund"
 
-    def __repr__(self) -> str:
-        return (
-            f"{self.__class__.__name__}({self.name}, {self.weight}, {self.instrument})"
+chrome_options = Options()
+chrome_options.add_argument("--headless")
+chrome_options.add_argument("--no-sandbox")
+chrome_options.add_argument("--disable-dev-shm-usage")
+driver = webdriver.Chrome(options=chrome_options)
+
+logging.info("Initialized driver")
+
+driver.get(url)
+
+accept_button = WebDriverWait(driver, 10).until(
+    EC.element_to_be_clickable(
+        (
+            By.XPATH,
+            '//*[@id="onetrust-reject-all-handler"]',
         )
+    )
+)
+accept_button.click()
 
+logging.info("Rejected cookies")
 
-mapped_holdings = [IsharesFundHoldings(share) for share in holdings]
+continue_as_private_investor_button = WebDriverWait(driver, 10).until(
+    EC.element_to_be_clickable(
+        (
+            By.XPATH,
+            '//*[@id="direct-url-screen-{lang}"]/div/div[2]/div/a',
+        )
+    )
+)
+continue_as_private_investor_button.click()
 
-print(mapped_holdings)
+logging.info("Enter as private investor")
+
+content_type = "application/json"
+
+captured_requests = driver.requests
+
+for req in driver.requests:
+    if req.response:
+        if req.response.headers.get_content_type() == content_type:
+            print(req)
+
+pattern = r"^https:\/\/www\.ishares\.com\/nl\/particuliere-belegger\/nl\/producten\/.*\/.*\/.*\.ajax\?tab=all&fileType=json&asOfDate=.*$"

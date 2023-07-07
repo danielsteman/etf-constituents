@@ -1,8 +1,8 @@
 import scrapy
-from selenium import webdriver
-from selenium.webdriver.chrome.options import ChromiumOptions
+from seleniumwire import webdriver
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 
@@ -12,7 +12,7 @@ class IsharesSpider(scrapy.Spider):
     def start_requests(self):
         url = "https://www.ishares.com/nl/particuliere-belegger/nl/producten/251781/ishares-euro-stoxx-50-ucits-etf-inc-fund"
 
-        chrome_options = ChromiumOptions()
+        chrome_options = Options()
         chrome_options.add_argument("--headless")
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-dev-shm-usage")
@@ -39,16 +39,20 @@ class IsharesSpider(scrapy.Spider):
         )
         continue_as_private_investor_button.click()
 
-        html = driver.page_source
+        for request in driver.requests:
+            if request.response:
+                print(
+                    request.url,
+                    request.response.status_code,
+                    request.response.headers["Content-Type"],
+                )
+
         driver.quit()
 
-        yield scrapy.Request(url=url, body=html, callback=self.parse)
+        # yield scrapy.Request(url=url, body=logs, callback=self.parse)
 
     def parse(self, response):
-        table_xpath = '//*[@id="allHoldingsTable"]'
-        # element = response.xpath(table_xpath).extract_first()
-        element = response.css("a::attr(href)").extract_first()
-        self.log(element)
+        return response
 
         # yield {"element": element}
         # page = response.url.split("/")[-2]
