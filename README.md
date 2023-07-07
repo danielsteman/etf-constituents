@@ -23,3 +23,14 @@ google-chrome-stable --version
 # Getting data from the source
 
 It's always better to get data straight from the source because it will not depend on the DOM being rendered in the same way over time, which is something outside of your control. Luckily, it's possible to reverse engineer iShares API calls.
+
+[List of funds](https://www.ishares.com/us/products/etf-investments#/?productView=etf&dataView=keyFacts)
+`https://www.ishares.com/us/products/etf-investments#/?productView=etf&dataView=keyFacts`
+
+[Fund holdings page](https://www.ishares.com/us/products/239726/ishares-core-sp-500-etf)
+`https://www.ishares.com/us/products/239726/ishares-core-sp-500-etf`
+
+[Fund holding data API call](https://www.ishares.com/us/products/239726/ishares-core-sp-500-etf/1467271812596.ajax?tab=all&fileType=json&asOfDate=20230705)
+`https://www.ishares.com/us/products/239726/ishares-core-sp-500-etf/1467271812596.ajax?tab=all&fileType=json&asOfDate=20230705`
+
+The id (e.g. `1467271812596` in this example) in the request URL seems arbitrary.
