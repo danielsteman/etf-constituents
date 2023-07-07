@@ -48,7 +48,7 @@ class IsharesFundScraper:
     [IsharesFundHoldings(), IsharesFundHoldings(), ...]
     """
 
-    def __init__(self, url) -> None:
+    def __init__(self, url: str) -> None:
         self.url = url
         chrome_options = Options()
         chrome_options.add_argument("--headless")
@@ -56,7 +56,7 @@ class IsharesFundScraper:
         chrome_options.add_argument("--disable-dev-shm-usage")
         self.driver = webdriver.Chrome(options=chrome_options)
 
-    def get_holdings(self):
+    def get_holdings(self) -> List[IsharesFundHoldings]:
         self.driver.get(self.url)
         accept_button = WebDriverWait(self.driver, 10).until(
             EC.element_to_be_clickable(
