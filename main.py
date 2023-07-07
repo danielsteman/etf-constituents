@@ -1,4 +1,8 @@
 import logging
+import json
+import re
+import gzip
+import io
 from seleniumwire import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
@@ -43,12 +47,19 @@ continue_as_private_investor_button.click()
 logging.info("Enter as private investor")
 
 content_type = "application/json"
+pattern = r"^https:\/\/www\.ishares\.com\/nl\/particuliere-belegger\/nl\/producten\/.*\/.*\/.*\.ajax\?tab=all&fileType=json&asOfDate=.*$"
 
 captured_requests = driver.requests
 
 for req in driver.requests:
     if req.response:
-        if req.response.headers.get_content_type() == content_type:
-            print(req)
-
-pattern = r"^https:\/\/www\.ishares\.com\/nl\/particuliere-belegger\/nl\/producten\/.*\/.*\/.*\.ajax\?tab=all&fileType=json&asOfDate=.*$"
+        if req.response.headers.get_content_type() == content_type and re.match(
+            pattern, req.url
+        ):
+            compressed_data = req.response.body
+            decompressed_data = gzip.decompress(compressed_data)
+            decoded_string = decompressed_data.decode("utf-8-sig")
+            print(decoded_string)
+            print(type(decoded_string))
+            holding_dict = json.loads(decoded_string)
+            print(holding_dict)
