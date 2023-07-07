@@ -1,8 +1,10 @@
 """
-Pass url to fund page
-Capture request for holdings
-Parse response body
-Load each fund into an object
+Pass url to funds overview
+Capture request for all funds
+[done] Pass url to fund page
+[done] Capture request for holdings
+[done] Parse response body
+[done] Load each fund into an object
 """
 
 from typing import List, Any
@@ -15,6 +17,23 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+
+
+def get_driver() -> webdriver.Chrome:
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    return webdriver.Chrome(options=chrome_options)
+
+
+class IsharesFundsListScraper:
+    def __init__(self, url: str) -> None:
+        self.url = url
+        self.driver = get_driver()
+
+    def get_funds_list(self):
+        return
 
 
 class IsharesFundHoldings:
@@ -50,11 +69,8 @@ class IsharesFundScraper:
 
     def __init__(self, url: str) -> None:
         self.url = url
-        chrome_options = Options()
-        chrome_options.add_argument("--headless")
-        chrome_options.add_argument("--no-sandbox")
-        chrome_options.add_argument("--disable-dev-shm-usage")
-        self.driver = webdriver.Chrome(options=chrome_options)
+        self.driver = get_driver()
+        print(type(self.driver))
 
     def get_holdings(self) -> List[IsharesFundHoldings]:
         self.driver.get(self.url)
@@ -101,3 +117,9 @@ class IsharesFundScraper:
                         holdings_list.append(IsharesFundHoldings(holdings))
 
         return holdings_list
+
+
+scraper = IsharesFundScraper(
+    "https://www.ishares.com/nl/particuliere-belegger/nl/producten/251781/ishares-euro-stoxx-50-ucits-etf-inc-fund"
+)
+scraper.get_holdings()
