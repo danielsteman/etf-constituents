@@ -7,6 +7,7 @@ Capture request for all funds
 [done] Load each fund into an object
 """
 
+from dataclasses import dataclass
 from typing import List, Any
 import logging
 import json
@@ -27,13 +28,59 @@ def get_driver() -> webdriver.Chrome:
     return webdriver.Chrome(chrome_options=chrome_options)
 
 
+@dataclass
+class IsharesFund:
+    name: str
+    url: str
+
+
 class IsharesFundsListScraper:
     def __init__(self, url: str) -> None:
         self.url = url
         self.driver = get_driver()
 
-    def get_funds_list(self):
-        return
+    def get_funds_list(self) -> List[IsharesFund]:
+        self.driver.get(self.url)
+        accept_button = WebDriverWait(self.driver, 10).until(
+            EC.element_to_be_clickable(
+                (
+                    By.XPATH,
+                    '//*[@id="onetrust-reject-all-handler"]',
+                )
+            )
+        )
+        accept_button.click()
+
+        continue_button = WebDriverWait(self.driver, 10).until(
+            EC.element_to_be_clickable(
+                (
+                    By.XPATH,
+                    '//*[@id="direct-url-screen-{lang}"]/div/div[4]/div/a',
+                )
+            )
+        )
+        continue_button.click()
+
+        sections = WebDriverWait(self.driver, 10).until(
+            EC.presence_of_all_elements_located(
+                (
+                    By.XPATH,
+                    '//*[@id="screener-funds"]/screener-cards/div/section[*]/div/div[1]/screener-fund-cell/a',
+                )
+            )
+        )
+
+        funds_list = []
+
+        for section in sections:
+            name = section.text
+            href = section.get_attribute("href")
+            if href:
+                funds_list.append(IsharesFund(name, href))
+            else:
+                logging.warning(f"Found no href for {section.text}\n")
+
+        return funds_list
 
 
 class IsharesFundHoldings:
@@ -70,7 +117,6 @@ class IsharesFundScraper:
     def __init__(self, url: str) -> None:
         self.url = url
         self.driver = get_driver()
-        print(type(self.driver))
 
     def get_holdings(self) -> List[IsharesFundHoldings]:
         self.driver.get(self.url)
@@ -119,7 +165,7 @@ class IsharesFundScraper:
         return holdings_list
 
 
-scraper = IsharesFundScraper(
-    "https://www.ishares.com/nl/particuliere-belegger/nl/producten/251781/ishares-euro-stoxx-50-ucits-etf-inc-fund"
+scraper = IsharesFundsListScraper(
+    "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFactspageNumber=1"
 )
-scraper.get_holdings()
+scraper.get_funds_list()
