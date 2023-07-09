@@ -17,7 +17,8 @@ import json
 import re
 import gzip
 from seleniumwire import webdriver
-from selenium.common.exceptions import TimeoutException
+
+# from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
@@ -72,7 +73,8 @@ class IsharesFundsListScraper:
             EC.presence_of_all_elements_located(
                 (
                     By.XPATH,
-                    '//*[@id="screener-funds"]/screener-cards/div/section[*]/div/div[1]/screener-fund-cell/a',
+                    '//*[@id="screener-funds"]/screener-cards/div/section[*]/div/div[1]/\
+                    screener-fund-cell/a',
                 )
             )
         )
@@ -182,7 +184,8 @@ class IsharesFundScraper:
 
 
 scraper = IsharesFundScraper(
-    "https://www.ishares.com/nl/particuliere-belegger/nl/producten/251781/ishares-euro-stoxx-50-ucits-etf-inc-fund"
+    "https://www.ishares.com/nl/particuliere-belegger/nl/producten/251781/ishares-euro-\
+        stoxx-50-ucits-etf-inc-fund"
 )
 holdings = scraper.get_holdings()
 print(holdings)

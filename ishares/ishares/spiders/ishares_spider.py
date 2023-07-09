@@ -10,7 +10,8 @@ class IsharesSpider(scrapy.Spider):
     name = "ishares"
 
     def start_requests(self):
-        url = "https://www.ishares.com/nl/particuliere-belegger/nl/producten/251781/ishares-euro-stoxx-50-ucits-etf-inc-fund"
+        url = "https://www.ishares.com/nl/particuliere-belegger/nl/producten/251781/isha\
+            res-euro-stoxx-50-ucits-etf-inc-fund"
 
         chrome_options = Options()
         chrome_options.add_argument("--headless")
