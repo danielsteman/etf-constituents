@@ -1,10 +1,13 @@
 """
-Pass url to funds overview
-Capture request for all funds
+[done] Pass url to funds overview
+[done] Scrape urls that lead to fund pages
 [done] Pass url to fund page
 [done] Capture request for holdings
 [done] Parse response body
 [done] Load each fund into an object
+
+Issues:
+scraper.get_holdings() sometimes returns an empty list
 """
 
 from dataclasses import dataclass
@@ -14,6 +17,7 @@ import json
 import re
 import gzip
 from seleniumwire import webdriver
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
@@ -32,6 +36,9 @@ def get_driver() -> webdriver.Chrome:
 class IsharesFund:
     name: str
     url: str
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self.name}, {self.url})"
 
 
 class IsharesFundsListScraper:
@@ -165,7 +172,17 @@ class IsharesFundScraper:
         return holdings_list
 
 
-scraper = IsharesFundsListScraper(
-    "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFactspageNumber=1"
+# fund_list_scraper = IsharesFundsListScraper(
+#     "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFactspageNumber=1"
+# )
+# fund_list = fund_list_scraper.get_funds_list()
+# holdings_scraper = IsharesFundScraper(fund_list[0].url)
+# holdings = holdings_scraper.get_holdings()
+# print(holdings)
+
+
+scraper = IsharesFundScraper(
+    "https://www.ishares.com/nl/particuliere-belegger/nl/producten/251781/ishares-euro-stoxx-50-ucits-etf-inc-fund"
 )
-scraper.get_funds_list()
+holdings = scraper.get_holdings()
+print(holdings)
