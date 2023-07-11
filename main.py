@@ -11,18 +11,18 @@ scraper.get_holdings() sometimes returns an empty list
 """
 
 from dataclasses import dataclass
-from typing import List, Any
-import logging
-import json
-import re
-import gzip
+from enum import Enum
 from seleniumwire import webdriver
+from typing import List, Any
+import gzip
+import json
+import logging
+import re
 
-# from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.wait import WebDriverWait
 
 
 def get_driver() -> webdriver.Chrome:
@@ -31,6 +31,69 @@ def get_driver() -> webdriver.Chrome:
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
     return webdriver.Chrome(chrome_options=chrome_options)
+
+
+class ETFManager(Enum):
+    ISHARES = "ishares"
+
+
+class Driver:
+    def __init__(self, variant: ETFManager) -> None:
+        self.variant = variant
+        chrome_options = Options()
+        chrome_options.add_argument("--headless")
+        chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("--disable-dev-shm-usage")
+        self.driver = webdriver.Chrome(chrome_options=chrome_options)
+
+    def __repr__(self) -> str:
+        return f"Driver(variant={self.variant})"
+
+    def get(self, url: str) -> None:
+        self.driver.get(url)
+
+    @property
+    def requests(self):
+        return self.driver.requests
+
+    def reject_cookies(self) -> None:
+        accept_button = WebDriverWait(self.driver, 10).until(
+            EC.element_to_be_clickable(
+                (
+                    By.XPATH,
+                    '//*[@id="onetrust-reject-all-handler"]',
+                )
+            )
+        )
+        accept_button.click()
+        logging.info("Rejected cookies")
+
+    def continue_as_professional_investor(self) -> None:
+        continue_button = WebDriverWait(self.driver, 10).until(
+            EC.element_to_be_clickable(
+                (
+                    By.XPATH,
+                    '//*[@id="direct-url-screen-{lang}"]/div/div[4]/div/a',
+                )
+            )
+        )
+        continue_button.click()
+        logging.info("Enter as professional investor")
+
+    def continue_as_individual_investor(self) -> None:
+        continue_button = WebDriverWait(self.driver, 10).until(
+            EC.element_to_be_clickable(
+                (By.XPATH, '//*[@id="direct-url-screen-{lang}"]/div/div[2]/div/a')
+            )
+        )
+        continue_button.click()
+        logging.info("Enter as individual investor")
+
+    def get_elements(self, xpath: str):
+        elements = WebDriverWait(self.driver, 10).until(
+            EC.presence_of_all_elements_located((By.XPATH, xpath))
+        )
+        return elements
 
 
 @dataclass
@@ -45,38 +108,14 @@ class IsharesFund:
 class IsharesFundsListScraper:
     def __init__(self, url: str) -> None:
         self.url = url
-        self.driver = get_driver()
+        self.driver = Driver(variant=ETFManager.ISHARES)
 
     def get_funds_list(self) -> List[IsharesFund]:
         self.driver.get(self.url)
-        accept_button = WebDriverWait(self.driver, 10).until(
-            EC.element_to_be_clickable(
-                (
-                    By.XPATH,
-                    '//*[@id="onetrust-reject-all-handler"]',
-                )
-            )
-        )
-        accept_button.click()
-
-        continue_button = WebDriverWait(self.driver, 10).until(
-            EC.element_to_be_clickable(
-                (
-                    By.XPATH,
-                    '//*[@id="direct-url-screen-{lang}"]/div/div[4]/div/a',
-                )
-            )
-        )
-        continue_button.click()
-
-        sections = WebDriverWait(self.driver, 10).until(
-            EC.presence_of_all_elements_located(
-                (
-                    By.XPATH,
-                    '//*[@id="screener-funds"]/screener-cards/div/section[*]/div/div[1]/\
-                    screener-fund-cell/a',
-                )
-            )
+        self.driver.reject_cookies()
+        self.driver.continue_as_professional_investor()
+        sections = self.driver.get_elements(
+            '//*[@id="screener-funds"]/screener-cards/div/section[*]/div/div[1]/screener-fund-cell/a'  # noqa: E501
         )
 
         funds_list = []
@@ -111,7 +150,7 @@ class IsharesFundHoldings:
         )
 
 
-class IsharesFundScraper:
+class IsharesFundHoldingsScraper:
     """
     Example usage:
 
@@ -125,33 +164,12 @@ class IsharesFundScraper:
 
     def __init__(self, url: str) -> None:
         self.url = url
-        self.driver = get_driver()
+        self.driver = Driver(variant=ETFManager.ISHARES)
 
     def get_holdings(self) -> List[IsharesFundHoldings]:
         self.driver.get(self.url)
-        accept_button = WebDriverWait(self.driver, 10).until(
-            EC.element_to_be_clickable(
-                (
-                    By.XPATH,
-                    '//*[@id="onetrust-reject-all-handler"]',
-                )
-            )
-        )
-        accept_button.click()
-
-        logging.info("Rejected cookies")
-
-        continue_as_private_investor_button = WebDriverWait(self.driver, 10).until(
-            EC.element_to_be_clickable(
-                (
-                    By.XPATH,
-                    '//*[@id="direct-url-screen-{lang}"]/div/div[2]/div/a',
-                )
-            )
-        )
-        continue_as_private_investor_button.click()
-
-        logging.info("Enter as private investor")
+        self.driver.reject_cookies()
+        self.driver.continue_as_individual_investor()
 
         content_type = "application/json"
         pattern = r"^https:\/\/www\.ishares\.com\/nl\/particuliere-belegger\/nl\/producten\/.*\/.*\/.*\.ajax\?tab=all&fileType=json&asOfDate=.*$"  # noqa: E501
