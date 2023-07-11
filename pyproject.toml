@@ -13,6 +13,7 @@ httpx = "^0.24.1"
 black = "^23.3.0"
 selenium-wire = "^5.1.0"
 pre-commit = "^3.3.3"
+pytest = "^7.4.0"
 
 
 [build-system]

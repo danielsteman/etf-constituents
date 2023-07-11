@@ -154,7 +154,7 @@ class IsharesFundScraper:
         logging.info("Enter as private investor")
 
         content_type = "application/json"
-        pattern = r"^https:\/\/www\.ishares\.com\/nl\/particuliere-belegger\/nl\/producten\/.*\/.*\/.*\.ajax\?tab=all&fileType=json&asOfDate=.*$"
+        pattern = r"^https:\/\/www\.ishares\.com\/nl\/particuliere-belegger\/nl\/producten\/.*\/.*\/.*\.ajax\?tab=all&fileType=json&asOfDate=.*$"  # noqa: E501
 
         holdings_list = []
 
@@ -172,20 +172,3 @@ class IsharesFundScraper:
                         holdings_list.append(IsharesFundHoldings(holdings))
 
         return holdings_list
-
-
-# fund_list_scraper = IsharesFundsListScraper(
-#     "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFactspageNumber=1"
-# )
-# fund_list = fund_list_scraper.get_funds_list()
-# holdings_scraper = IsharesFundScraper(fund_list[0].url)
-# holdings = holdings_scraper.get_holdings()
-# print(holdings)
-
-
-scraper = IsharesFundScraper(
-    "https://www.ishares.com/nl/particuliere-belegger/nl/producten/251781/ishares-euro-\
-        stoxx-50-ucits-etf-inc-fund"
-)
-holdings = scraper.get_holdings()
-print(holdings)
