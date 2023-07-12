@@ -20,6 +20,10 @@ Check if the installation has been successful:
 google-chrome-stable --version
 ```
 
+# Package management
+
+This project uses Poetry, but Vercel requires a `requirements.txt`, which can be generated with `poetry export --without-hashes --format=requirements.txt > requirements.txt`.
+
 # Getting data from the source
 
 It's always better to get data straight from the source because it will not depend on the DOM being rendered in the same way over time, which is something outside of your control. Luckily, it's possible to reverse engineer iShares API calls.
