@@ -6,9 +6,7 @@ repos:
         language_version: python3.10
         args: [--line-length=88] # Set the desired line length for Black
 
-  - repo: https://github.com/PyCQA/flake8
-    rev: 4.0.1
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.0.278
     hooks:
-      - id: flake8
-        language_version: python3.10
-        args: [--max-line-length=88] # Set the desired line length for Flake8
+      - id: ruff
