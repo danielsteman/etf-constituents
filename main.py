@@ -13,7 +13,7 @@ scraper.get_holdings() sometimes returns an empty list
 from dataclasses import dataclass
 from enum import Enum
 from seleniumwire import webdriver
-from typing import List, Any
+from typing import List
 import gzip
 import json
 import logging
@@ -125,25 +125,6 @@ class IsharesFundsListScraper:
         return funds_list
 
 
-class IsharesFundHoldings:
-    def __init__(self, raw_data: List[Any]) -> None:
-        self.ticker = raw_data[0]
-        self.name = raw_data[1]
-        self.sector = raw_data[2]
-        self.instrument = raw_data[3]
-        self.market_value = raw_data[4]["raw"]
-        self.weight = raw_data[5]["raw"]
-        self.nominal_value = raw_data[6]["raw"]
-        self.isin = raw_data[7]
-        self.currency = raw_data[12]
-        self.exchange = raw_data[11]
-
-    def __repr__(self) -> str:
-        return (
-            f"{self.__class__.__name__}({self.name}, {self.weight}, {self.instrument})"
-        )
-
-
 class IsharesFundHoldingsScraper:
     """
     Example usage:
@@ -160,7 +141,7 @@ class IsharesFundHoldingsScraper:
         self.url = url
         self.driver = Driver(variant=ETFManager.ISHARES)
 
-    def get_holdings(self) -> List[IsharesFundHoldings]:
+    def get_holdings(self) -> List[FundHoldings]:
         self.driver.get(self.url)
         self.driver.reject_cookies()
         self.driver.continue_as_individual_investor()
