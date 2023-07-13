@@ -24,6 +24,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
 from schemas import FundHoldings, FundReference
+from exceptions import FundsNotScrapedException, HoldingsNotScrapedException
 
 
 class ETFManager(Enum):
@@ -101,6 +102,8 @@ class IsharesFundsListScraper:
         sections = self.driver.get_elements(
             '//*[@id="screener-funds"]/screener-cards/div/section[*]/div/div[1]/screener-fund-cell/a'  # noqa: E501
         )
+        if not sections:
+            raise FundsNotScrapedException("Sections have not been scraped")
 
         funds_list = []
 
@@ -149,7 +152,13 @@ class IsharesFundHoldingsScraper:
                     compressed_data = req.response.body
                     decompressed_data = gzip.decompress(compressed_data)
                     decoded_string = decompressed_data.decode("utf-8-sig")
-                    holdings_dicts = json.loads(decoded_string)["aaData"]
+
+                    try:
+                        holdings_dicts = json.loads(decoded_string)["aaData"]
+                    except IndexError:
+                        raise HoldingsNotScrapedException(
+                            f"Holdings for {req.url} not found"
+                        )
 
                     for holdings in holdings_dicts:
                         holdings_object = FundHoldings(

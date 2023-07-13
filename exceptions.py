@@ -1,0 +1,2 @@
+class FundsNotScrapedException(Exception):
+    pass
