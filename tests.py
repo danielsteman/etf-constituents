@@ -1,10 +1,12 @@
 from main import IsharesFundsListScraper, IsharesFundHoldingsScraper
+from enums import ETFManager
 
 
 class TestIsharesFundsListScraper:
     def test_get_fund_list(self):
         fund_list_scraper = IsharesFundsListScraper(
-            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFactspageNumber=1"  # noqa: E501
+            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFactspageNumber=1",  # noqa: E501
+            ETFManager.ISHARES,
         )
         fund_list = fund_list_scraper.get_funds_list()
         assert len(fund_list) > 0

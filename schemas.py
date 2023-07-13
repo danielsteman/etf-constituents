@@ -18,4 +18,5 @@ class FundHoldings(BaseModel):
 
 class FundReference(BaseModel):
     name: str
+    fund_manager: str
     url: str
