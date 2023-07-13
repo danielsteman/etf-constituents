@@ -10,3 +10,10 @@ repos:
     rev: v0.0.278
     hooks:
       - id: ruff
+
+  - repo: local
+    hooks:
+      - id: export-requirements
+        name: Export requirements from Poetry
+        entry: bash -c 'cd "$(git rev-parse --show-toplevel)" && poetry export --without-hashes --format=requirements.txt > requirements.txt'
+        language: system
