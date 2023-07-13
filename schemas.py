@@ -2,6 +2,7 @@ from pydantic import BaseModel
 
 
 class FundHoldings(BaseModel):
+    fund_name: str
     ticker: str
     name: str
     sector: str

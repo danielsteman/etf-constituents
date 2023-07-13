@@ -13,7 +13,8 @@ class TestIsharesFundsListScraper:
 class TestIsharesFundHoldingsScraper:
     def test_get_holdings(self):
         scraper = IsharesFundHoldingsScraper(
-            "https://www.ishares.com/nl/particuliere-belegger/nl/producten/251781/ishares-euro-stoxx-50-ucits-etf-inc-fund"  # noqa: E501
+            "https://www.ishares.com/nl/particuliere-belegger/nl/producten/251781/ishares-euro-stoxx-50-ucits-etf-inc-fund",  # noqa: E501
+            "ishares-euro-stoxx-50-ucits-etf-inc-fund",
         )
         holdings = scraper.get_holdings()
         assert len(holdings) > 0

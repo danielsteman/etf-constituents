@@ -130,8 +130,9 @@ class IsharesFundHoldingsScraper:
     [IsharesFundHoldings(), IsharesFundHoldings(), ...]
     """
 
-    def __init__(self, url: str) -> None:
+    def __init__(self, url: str, fund_name: str) -> None:
         self.url = url
+        self.fund_name = fund_name
         self.driver = Driver(variant=ETFManager.ISHARES)
 
     def get_holdings(self) -> List[FundHoldings]:
@@ -162,6 +163,7 @@ class IsharesFundHoldingsScraper:
 
                     for holdings in holdings_dicts:
                         holdings_object = FundHoldings(
+                            fund_name=self.fund_name,
                             ticker=holdings[0],
                             name=holdings[1],
                             sector=holdings[2],
