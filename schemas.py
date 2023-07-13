@@ -13,3 +13,8 @@ class FundHoldings(BaseModel):
     isin: str
     currency: str
     exchange: str
+
+
+class FundReference(BaseModel):
+    name: str
+    url: str

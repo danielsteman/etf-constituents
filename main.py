@@ -10,7 +10,6 @@ Issues:
 scraper.get_holdings() sometimes returns an empty list
 """
 
-from dataclasses import dataclass
 from enum import Enum
 from seleniumwire import webdriver
 from typing import List
@@ -24,7 +23,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
-from schemas import FundHoldings
+from schemas import FundHoldings, FundReference
 
 
 class ETFManager(Enum):
@@ -90,21 +89,12 @@ class Driver:
         return elements
 
 
-@dataclass
-class IsharesFund:
-    name: str
-    url: str
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self.name}, {self.url})"
-
-
 class IsharesFundsListScraper:
     def __init__(self, url: str) -> None:
         self.url = url
         self.driver = Driver(variant=ETFManager.ISHARES)
 
-    def get_funds_list(self) -> List[IsharesFund]:
+    def get_funds_list(self) -> List[FundReference]:
         self.driver.get(self.url)
         self.driver.reject_cookies()
         self.driver.continue_as_professional_investor()
@@ -118,7 +108,7 @@ class IsharesFundsListScraper:
             name = section.text
             href = section.get_attribute("href")
             if href:
-                funds_list.append(IsharesFund(name, href))
+                funds_list.append(FundReference(name=name, url=href))
             else:
                 logging.warning(f"Found no href for {section.text}\n")
 
