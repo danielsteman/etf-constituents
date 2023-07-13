@@ -24,6 +24,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
+from schemas import FundHoldings
+
 
 class ETFManager(Enum):
     ISHARES = "ishares"
@@ -179,6 +181,20 @@ class IsharesFundHoldingsScraper:
                     holdings_dicts = json.loads(decoded_string)["aaData"]
 
                     for holdings in holdings_dicts:
-                        holdings_list.append(IsharesFundHoldings(holdings))
+                        holdings_object = FundHoldings(
+                            ticker=holdings[0],
+                            name=holdings[1],
+                            sector=holdings[2],
+                            instrument=holdings[3],
+                            market_value=holdings[4]["raw"],
+                            weight=holdings[5]["raw"],
+                            nominal_value=holdings[6]["raw"],
+                            nominal=holdings[7]["raw"],
+                            isin=holdings[8],
+                            currency=holdings[12],
+                            exchange=holdings[11],
+                        )
+
+                        holdings_list.append(holdings_object)
 
         return holdings_list
