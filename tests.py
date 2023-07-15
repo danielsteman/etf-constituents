@@ -1,5 +1,5 @@
-from main import IsharesFundsListScraper, IsharesFundHoldingsScraper
 from enums import ETFManager
+from main import IsharesFundHoldingsScraper, IsharesFundsListScraper
 
 
 class TestIsharesFundsListScraper:
