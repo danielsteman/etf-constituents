@@ -91,9 +91,10 @@ class Driver:
 
 
 class IsharesFundsListScraper:
-    def __init__(self, url: str) -> None:
+    def __init__(self, url: str, fund_manager: ETFManager) -> None:
         self.url = url
-        self.driver = Driver(variant=ETFManager.ISHARES)
+        self.fund_manager = fund_manager
+        self.driver = Driver(variant=fund_manager)
 
     def get_funds_list(self) -> List[FundReference]:
         self.driver.get(self.url)
@@ -111,7 +112,11 @@ class IsharesFundsListScraper:
             name = section.text
             href = section.get_attribute("href")
             if href:
-                funds_list.append(FundReference(name=name, url=href))
+                funds_list.append(
+                    FundReference(
+                        name=name, fund_manager=self.fund_manager.value, url=href
+                    )
+                )
             else:
                 logging.warning(f"Found no href for {section.text}\n")
 
