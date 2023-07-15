@@ -10,21 +10,21 @@ Issues:
 scraper.get_holdings() sometimes returns an empty list
 """
 
-from enum import Enum
-from seleniumwire import webdriver
-from typing import List
 import gzip
 import json
 import logging
 import re
+from enum import Enum
+from typing import List
 
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
+from seleniumwire import webdriver
 
-from schemas import FundHoldings, FundReference
 from exceptions import FundsNotScrapedException, HoldingsNotScrapedException
+from schemas import FundHoldings, FundReference
 
 
 class ETFManager(Enum):
