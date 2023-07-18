@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
 
-class FundHoldings(BaseModel):
+class FundHolding(BaseModel):
     fund_name: str
     ticker: str
     name: str

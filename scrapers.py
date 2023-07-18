@@ -24,7 +24,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from seleniumwire import webdriver
 
 from exceptions import FundsNotScrapedException, HoldingsNotScrapedException
-from schemas import FundHoldings, FundReference
+from schemas import FundHolding, FundReference
 
 
 class ETFManager(Enum):
@@ -132,7 +132,7 @@ class IsharesFundHoldingsScraper:
     )
     scraper.get_holdings()
     >>>
-    [IsharesFundHoldings(), IsharesFundHoldings(), ...]
+    [IsharesFundHolding(), IsharesFundHolding(), ...]
     """
 
     def __init__(self, url: str, fund_name: str) -> None:
@@ -140,7 +140,7 @@ class IsharesFundHoldingsScraper:
         self.fund_name = fund_name
         self.driver = Driver(variant=ETFManager.ISHARES)
 
-    def get_holdings(self) -> List[FundHoldings]:
+    def get_holdings(self) -> List[FundHolding]:
         self.driver.get(self.url)
         self.driver.reject_cookies()
         self.driver.continue_as_individual_investor()
@@ -167,7 +167,7 @@ class IsharesFundHoldingsScraper:
                         )
 
                     for holdings in holdings_dicts:
-                        holdings_object = FundHoldings(
+                        holdings_object = FundHolding(
                             fund_name=self.fund_name,
                             ticker=holdings[0],
                             name=holdings[1],

@@ -1,11 +1,11 @@
-from sqlalchemy import Column, ForeignKey, Integer, String
+from sqlalchemy import Column, Float, ForeignKey, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
 Base = declarative_base()
 
 
-class FundHoldings(Base):
+class FundHolding(Base):
     __tablename__ = "fundholdings"
 
     id_ = Column(Integer, primary_key=True, index=True)
@@ -14,10 +14,10 @@ class FundHoldings(Base):
     name = Column(String(255))
     sector = Column(String(255))
     instrument = Column(String(255))
-    market_value: float
-    weight: float
-    nominal_value: float
-    nominal: float
+    market_value = Column(Float)
+    weight = Column(Float)
+    nominal_value = Column(Float)
+    nominal = Column(Float)
     isin = Column(String(255))
     currency = Column(String(255))
     exchange = Column(String(255))
@@ -33,4 +33,4 @@ class FundReference(Base):
     fund_manager = Column(String(255))
     url = Column(String(255))
 
-    holdings = relationship("FundHoldings", back_populates="reference")
+    holdings = relationship("FundHolding", back_populates="reference")
