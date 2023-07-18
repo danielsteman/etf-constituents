@@ -14,9 +14,12 @@ import gzip
 import json
 import logging
 import re
+import time
 from enum import Enum
+from functools import wraps
 from typing import List
 
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
@@ -27,13 +30,33 @@ from exceptions import FundsNotScrapedException, HoldingsNotScrapedException
 from schemas import FundHolding, FundReference
 
 
+def retry_on_timeout(func):
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+        retries = 0
+        while retries < self.max_retries:
+            try:
+                return func(self, *args, **kwargs)
+            except TimeoutException:
+                retries += 1
+                print(f"Timeout occurred. Retrying ({retries}/{self.max_retries})")
+                time.sleep(self.retry_delay)
+        raise TimeoutError(f"Exceeded maximum retries ({self.max_retries})")
+
+    return wrapper
+
+
 class ETFManager(Enum):
     ISHARES = "ishares"
 
 
 class Driver:
-    def __init__(self, variant: ETFManager) -> None:
+    def __init__(
+        self, variant: ETFManager, *, max_retries: int = 3, retry_delay: int = 1
+    ) -> None:
         self.variant = variant
+        self.max_retries = max_retries
+        self.retry_delay = retry_delay
         chrome_options = Options()
         chrome_options.add_argument("--headless")
         chrome_options.add_argument("--no-sandbox")
@@ -50,6 +73,7 @@ class Driver:
     def requests(self):
         return self.driver.requests
 
+    @retry_on_timeout
     def reject_cookies(self) -> None:
         accept_button = WebDriverWait(self.driver, 10).until(
             EC.element_to_be_clickable(
@@ -62,6 +86,7 @@ class Driver:
         accept_button.click()
         logging.info("Rejected cookies")
 
+    @retry_on_timeout
     def continue_as_professional_investor(self) -> None:
         continue_button = WebDriverWait(self.driver, 10).until(
             EC.element_to_be_clickable(
@@ -74,6 +99,7 @@ class Driver:
         continue_button.click()
         logging.info("Enter as professional investor")
 
+    @retry_on_timeout
     def continue_as_individual_investor(self) -> None:
         continue_button = WebDriverWait(self.driver, 10).until(
             EC.element_to_be_clickable(
