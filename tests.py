@@ -1,5 +1,5 @@
 from enums import ETFManager
-from main import IsharesFundHoldingsScraper, IsharesFundsListScraper
+from scrapers import IsharesFundHoldingsScraper, IsharesFundsListScraper
 
 
 class TestIsharesFundsListScraper:
