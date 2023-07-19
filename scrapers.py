@@ -28,6 +28,7 @@ from seleniumwire import webdriver
 
 from exceptions import FundsNotScrapedException, HoldingsNotScrapedException
 from schemas import FundHolding, FundReference
+import schemas
 
 
 def retry_on_timeout(func):
@@ -154,7 +155,8 @@ class IsharesFundHoldingsScraper:
     Example usage:
 
     scraper = IsharesFundScraper(
-        "https://www.ishares.com/nl/particuliere-belegger/nl/producten/251781/ishares-euro-stoxx-50-ucits-etf-inc-fund"
+        "https://www.ishares.com/nl/professionele-belegger/nl/producten/251781/ishares-euro-stoxx-50-ucits-etf-inc-fund",
+        "ishares-euro-stoxx-50-ucits-etf-inc-fund",
     )
     scraper.get_holdings()
     >>>
@@ -166,13 +168,47 @@ class IsharesFundHoldingsScraper:
         self.fund_name = fund_name
         self.driver = Driver(variant=ETFManager.ISHARES)
 
+    def map_to_schema(self, data: List):
+        if len(data) == 17:
+            return schemas.FundHolding_(
+                fund_name=self.fund_name,
+                ticker=data[0],
+                name=data[1],
+                sector=data[2],
+                instrument=data[3],
+                market_value=data[4]["raw"],
+                weight=data[5]["raw"],
+                nominal_value=data[6]["raw"],
+                nominal=data[7]["raw"],
+                cusip=data[8],
+                isin=data[9],
+                sedol=data[10],
+                exchange=data[13],
+                currency=data[14],
+            )
+        else:
+            return schemas.FundHolding_(
+                fund_name=self.fund_name,
+                ticker=data[0],
+                name=data[1],
+                sector=data[2],
+                instrument=data[3],
+                market_value=data[4]["raw"],
+                weight=data[5]["raw"],
+                nominal_value=data[6]["raw"],
+                nominal=data[7]["raw"],
+                isin=data[8],
+                exchange=data[11],
+                currency=data[12],
+            )
+
     def get_holdings(self) -> List[FundHolding]:
         self.driver.get(self.url)
         self.driver.reject_cookies()
-        self.driver.continue_as_individual_investor()
+        self.driver.continue_as_professional_investor()
 
         content_type = "application/json"
-        pattern = r"^https:\/\/www\.ishares\.com\/nl\/particuliere-belegger\/nl\/producten\/.*\/.*\/.*\.ajax\?tab=all&fileType=json&asOfDate=.*$"  # noqa: E501
+        pattern = r"^https:\/\/www\.ishares\.com\/nl\/professionele-belegger\/nl\/producten\/.*\/.*\/.*\.ajax\?tab=all&fileType=json&asOfDate=.*$"  # noqa: E501
 
         holdings_list = []
 
