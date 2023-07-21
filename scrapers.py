@@ -26,13 +26,13 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 from seleniumwire import webdriver
 
+import schemas
 from exceptions import (
     FundsNotScrapedException,
     HoldingsNotScrapedException,
     UnexpectedFundHoldingData,
 )
 from schemas import FundHolding, FundReference
-import schemas
 
 
 def retry_on_timeout(func):
@@ -207,7 +207,8 @@ class IsharesFundHoldingsScraper:
             )
         else:
             raise UnexpectedFundHoldingData(
-                f"Data of lenght {len(data)} will probably not fit in the `FundHolding` schema."
+                f"Data of lenght {len(data)} will probably not fit in the `FundHolding`\
+                schema."
             )
 
     def get_holdings(self) -> List[FundHolding]:
