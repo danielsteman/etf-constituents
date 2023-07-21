@@ -15,7 +15,6 @@ import json
 import logging
 import re
 import time
-from enum import Enum
 from functools import wraps
 from typing import List
 
@@ -27,6 +26,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from seleniumwire import webdriver
 
 import schemas
+from enums import ETFManager
 from exceptions import (
     FundsNotScrapedException,
     HoldingsNotScrapedException,
@@ -56,10 +56,6 @@ def retry(func):
         raise TimeoutError(f"Exceeded maximum retries ({self.max_retries})")
 
     return wrapper
-
-
-class ETFManager(Enum):
-    ISHARES = "ishares"
 
 
 class Driver:
