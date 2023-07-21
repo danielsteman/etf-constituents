@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 class FundHolding(BaseModel):
     fund_name: str
-    ticker: str
+    ticker: Optional[str] = None
     name: str
     sector: str
     instrument: str

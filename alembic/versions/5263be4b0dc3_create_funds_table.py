@@ -29,7 +29,7 @@ def upgrade():
         "fundholdings",
         sa.Column("id_", sa.Integer(), nullable=False),
         sa.Column("fund_name", sa.Integer(), nullable=False),
-        sa.Column("ticker", sa.String(length=255), nullable=False),
+        sa.Column("ticker", sa.String(length=255), nullable=True),
         sa.Column("name", sa.String(length=255), nullable=False),
         sa.Column("sector", sa.String(length=255), nullable=False),
         sa.Column("instrument", sa.String(length=255), nullable=False),

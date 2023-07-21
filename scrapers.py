@@ -202,20 +202,17 @@ class IsharesFundHoldingsScraper:
 
     @staticmethod
     def map_to_schema(fund_name, data: List):
-        common_args = {
-            "fund_name": fund_name,
-            "ticker": data[0],
-            "name": data[1],
-            "sector": data[2],
-            "instrument": data[3],
-            "market_value": data[4]["raw"],
-            "weight": data[5]["raw"],
-            "nominal_value": data[6]["raw"],
-            "nominal": data[7]["raw"],
-        }
         if len(data) == 17:
             return schemas.FundHolding(
-                **common_args,
+                fund_name=fund_name,
+                ticker=data[0],
+                name=data[1],
+                sector=data[2],
+                instrument=data[3],
+                market_value=data[4]["raw"],
+                weight=data[5]["raw"],
+                nominal_value=data[6]["raw"],
+                nominal=data[7]["raw"],
                 cusip=data[8],
                 isin=data[9],
                 sedol=data[10],
@@ -225,7 +222,15 @@ class IsharesFundHoldingsScraper:
             )
         elif len(data) == 13:
             return schemas.FundHolding(
-                **common_args,
+                fund_name=fund_name,
+                ticker=data[0],
+                name=data[1],
+                sector=data[2],
+                instrument=data[3],
+                market_value=data[4]["raw"],
+                weight=data[5]["raw"],
+                nominal_value=data[6]["raw"],
+                nominal=data[7]["raw"],
                 isin=data[8],
                 country=data[10],
                 exchange=data[11],
@@ -233,8 +238,17 @@ class IsharesFundHoldingsScraper:
             )
         elif len(data) == 26:
             return schemas.FundHolding(
-                **common_args,
+                fund_name=fund_name,
+                name=data[0],
+                sector=data[1],
+                instrument=data[2],
+                market_value=data[3]["raw"],
+                weight=data[4]["raw"],
+                nominal_value=data[5]["raw"],
+                nominal=data[6]["raw"],
+                cusip=data[7],
                 isin=data[8],
+                sedol=data[9],
                 country=data[10],
                 currency=data[12],
             )

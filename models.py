@@ -10,7 +10,7 @@ class FundHolding(Base):
 
     id_ = Column(Integer, primary_key=True, index=True)
     fund_name = Column(Integer, ForeignKey("fundreference.id_"))
-    ticker = Column(String(255))
+    ticker = Column(String(255), nullable=True)
     name = Column(String(255))
     sector = Column(String(255))
     instrument = Column(String(255))

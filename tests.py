@@ -126,7 +126,7 @@ class TestFundHoldingSchemas:
             exchange="Euronext Amsterdam",
         )
 
-    def test_non_stock(self):
+    def test_non_stock_holding(self):
         non_stock = [
             "GBP",
             "GBP CASH",
@@ -161,32 +161,48 @@ class TestFundHoldingSchemas:
             country="Verenigd Koninkrijk",
         )
 
-        # def test_bond(self):
-        #     bond = [
-        #         "BLACKROCK CASH CL INST SL AGENCY",
-        #         "Liquide middelen en/of derivaten",
-        #         "Money Market",
-        #         {"display": "USD 4.392.919.230", "raw": 4392919229.69},
-        #         {"display": "4,69", "raw": 4.68829},
-        #         {"display": "4.392.919.229,69", "raw": 4392919229.69},
-        #         {"display": "4.391.601.749,00", "raw": 4391601749},
-        #         "066922519",
-        #         "US0669225197",
-        #         "BKGRT85",
-        #         "Verenigde Staten",
-        #         "-",
-        #         "USD",
-        #         {"display": "0,06", "raw": 0.06},
-        #         {"display": "5,16", "raw": 5.16},
-        #         "1,00",
-        #         {"display": "-", "raw": ""},
-        #         {"display": "5,28", "raw": 5.28},
-        #         "0,19",
-        #         {"display": "-", "raw": ""},
-        #         {"display": "5,16", "raw": 5.16},
-        #         "0,18",
-        #         "5,16",
-        #         "USD",
-        #         "-",
-        #         "04/feb/2009",
-        #     ]
+    def test_bond_holding(self):
+        bond = [
+            "BLACKROCK CASH CL INST SL AGENCY",
+            "Liquide middelen en/of derivaten",
+            "Money Market",
+            {"display": "USD 4.392.919.230", "raw": 4392919229.69},
+            {"display": "4,69", "raw": 4.68829},
+            {"display": "4.392.919.229,69", "raw": 4392919229.69},
+            {"display": "4.391.601.749,00", "raw": 4391601749},
+            "066922519",
+            "US0669225197",
+            "BKGRT85",
+            "Verenigde Staten",
+            "-",
+            "USD",
+            {"display": "0,06", "raw": 0.06},
+            {"display": "5,16", "raw": 5.16},
+            "1,00",
+            {"display": "-", "raw": ""},
+            {"display": "5,28", "raw": 5.28},
+            "0,19",
+            {"display": "-", "raw": ""},
+            {"display": "5,16", "raw": 5.16},
+            "0,18",
+            "5,16",
+            "USD",
+            "-",
+            "04/feb/2009",
+        ]
+        holdings = IsharesFundHoldingsScraper.map_to_schema("random_fund_name", bond)
+        assert holdings == FundHolding(
+            fund_name="random_fund_name",
+            name="BLACKROCK CASH CL INST SL AGENCY",
+            sector="Liquide middelen en/of derivaten",
+            instrument="Money Market",
+            market_value=4392919229.69,
+            weight=4.68829,
+            nominal_value=4392919229.69,
+            nominal=4391601749,
+            cusip="066922519",
+            isin="US0669225197",
+            sedol="BKGRT85",
+            currency="USD",
+            country="Verenigde Staten",
+        )
