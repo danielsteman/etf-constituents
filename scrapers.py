@@ -19,7 +19,7 @@ from enum import Enum
 from functools import wraps
 from typing import List
 
-from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
@@ -49,7 +49,7 @@ def retry(func):
             except HoldingsNotScrapedException:
                 retries += 1
                 print(
-                    f"Failed to extract holdings. Retrying \
+                    f"Failed to extract holdings. Retrying\
                     ({retries}/{self.max_retries})"
                 )
                 time.sleep(self.retry_delay)
@@ -130,13 +130,14 @@ class Driver:
         )
         return elements
 
-    def show_all_positions(self):
-        show_all_positions_button = "/html/body/div[1]/div[2]/div/div/div/div/div/div[13]/div/div/div/div[1]/ul/li[2]/a"  # noqa: E501
-        continue_button = WebDriverWait(self.driver, 10).until(
-            EC.element_to_be_clickable((By.XPATH, show_all_positions_button))
-        )
-        continue_button.click()
-        logging.info("Showing all positions tab.")
+    def show_all_positions(self) -> None:
+        try:
+            xpath = "/html/body/div[1]/div[2]/div/div/div/div/div/div[13]/div/div/div/div[1]/ul/li[2]/a"  # noqa: E501
+            element = self.driver.find_element(By.XPATH, xpath)
+            element.click()
+            print("Showing all positions tab.")
+        except NoSuchElementException:
+            print("All positions tab is already active.")
 
 
 class IsharesFundsListScraper:
@@ -152,6 +153,7 @@ class IsharesFundsListScraper:
         sections = self.driver.get_elements(
             '//*[@id="screener-funds"]/screener-cards/div/section[*]/div/div[1]/screener-fund-cell/a'  # noqa: E501
         )
+
         if not sections:
             raise FundsNotScrapedException("Sections have not been scraped.")
 
@@ -270,12 +272,13 @@ class IsharesFundHoldingsScraper:
         self.driver.get(self.fund_ref.url)
         self.driver.reject_cookies()
         self.driver.continue_as_professional_investor()
+        self.driver.show_all_positions()
 
         content_type = "application/json"
 
         holdings_list = []
 
-        self.driver.wait(1)  # wait for page to be fully loaded
+        self.driver.wait(3)  # wait for page to be fully loaded
 
         for req in self.driver.requests:
             if req.response:

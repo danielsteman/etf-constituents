@@ -18,6 +18,7 @@ class TestIsharesFundHoldingsScraper:
         urls = [
             "https://www.ishares.com/nl/professionele-belegger/nl/producten/239726/ishares-core-sp-500-etf/1497735778849.ajax?tab=all&fileType=json&asOfDate=20230719",
             "https://www.ishares.com/nl/professionele-belegger/nl/producten/251781/ishares-euro-stoxx-50-ucits-etf-inc-fund/1497735778849.ajax?tab=all&fileType=json&asOfDate=20230719",
+            "https://www.ishares.com/nl/professionele-belegger/nl/producten/239458/ishares-core-total-us-bond-market-etf/1497735778849.ajax?tab=all&fileType=json&asOfDate=20230720",
         ]
         fund_ref = FundReference(
             name="ishares-euro-stoxx-50-ucits-etf-inc-fund",
@@ -45,6 +46,16 @@ class TestIsharesFundHoldingsScraper:
             url="https://www.ishares.com/nl/professionele-belegger/nl/producten/239726/ishares-core-sp-500-etf",  # noqa: E501
         )
         scraper = IsharesFundHoldingsScraper(fund_ref)
+        holdings = scraper.get_holdings()
+        assert len(holdings) > 0
+
+    def test_get_holdings_aggregate_bond(self):
+        fund_ref = FundReference(
+            name="iShares Core U.S. Aggregate Bond ETF",
+            fund_manager="ishares",
+            url="https://www.ishares.com/nl/professionele-belegger/nl/producten/239458/ishares-core-total-us-bond-market-etf",  # noqa: E501
+        )
+        scraper = IsharesFundHoldingsScraper(fund_ref, max_retries=1)
         holdings = scraper.get_holdings()
         assert len(holdings) > 0
 
