@@ -40,7 +40,7 @@ for fund_ref in fund_list:
     print(f"Processing fund name: {fund_ref.name}.")
     print(f"Processing fund url: {fund_ref.url}.")
 
-    holdings_scraper = IsharesFundHoldingsScraper(fund_ref.url, fund_ref.name)
+    holdings_scraper = IsharesFundHoldingsScraper(fund_ref)
     holdings = holdings_scraper.get_holdings()
 #     for holding in holdings:
 #         print(f"Processing holding: {holding.name}.")

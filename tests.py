@@ -1,4 +1,5 @@
 from enums import ETFManager
+from schemas import FundHolding, FundReference
 from scrapers import IsharesFundHoldingsScraper, IsharesFundsListScraper
 
 
@@ -13,75 +14,161 @@ class TestIsharesFundsListScraper:
 
 
 class TestIsharesFundHoldingsScraper:
-    def test_get_holdings_stoxx50(self):
-        scraper = IsharesFundHoldingsScraper(
-            "https://www.ishares.com/nl/professionele-belegger/nl/producten/251781/ishares-euro-stoxx-50-ucits-etf-inc-fund",  # noqa: E501
-            "ishares-euro-stoxx-50-ucits-etf-inc-fund",
+    def test_intercept_request_regex(self):
+        urls = [
+            "https://www.ishares.com/nl/professionele-belegger/nl/producten/239726/ishares-core-sp-500-etf/1497735778849.ajax?tab=all&fileType=json&asOfDate=20230719",
+            "https://www.ishares.com/nl/professionele-belegger/nl/producten/251781/ishares-euro-stoxx-50-ucits-etf-inc-fund/1497735778849.ajax?tab=all&fileType=json&asOfDate=20230719",
+        ]
+        fund_ref = FundReference(
+            name="ishares-euro-stoxx-50-ucits-etf-inc-fund",
+            fund_manager="ishares",
+            url="https://www.ishares.com/nl/professionele-belegger/nl/producten/251781/ishares-euro-stoxx-50-ucits-etf-inc-fund",  # noqa: E501
         )
+        scraper = IsharesFundHoldingsScraper(fund_ref)
+        for url in urls:
+            assert scraper.should_be_intercepted(url)
+
+    def test_get_holdings_stoxx50(self):
+        fund_ref = FundReference(
+            name="ishares-euro-stoxx-50-ucits-etf-inc-fund",
+            fund_manager="ishares",
+            url="https://www.ishares.com/nl/professionele-belegger/nl/producten/251781/ishares-euro-stoxx-50-ucits-etf-inc-fund",  # noqa: E501
+        )
+        scraper = IsharesFundHoldingsScraper(fund_ref)
         holdings = scraper.get_holdings()
         assert len(holdings) > 0
 
     def test_get_holdings_sp500(self):
-        scraper = IsharesFundHoldingsScraper(
-            "https://www.ishares.com/nl/professionele-belegger/nl/producten/239726/ishares-core-sp-500-etf",  # noqa: E501
-            "iShares Core S&P 500 ETF IVV",
+        fund_ref = FundReference(
+            name="iShares Core S&P 500 ETF IVV",
+            fund_manager="ishares",
+            url="https://www.ishares.com/nl/professionele-belegger/nl/producten/239726/ishares-core-sp-500-etf",  # noqa: E501
         )
+        scraper = IsharesFundHoldingsScraper(fund_ref)
         holdings = scraper.get_holdings()
         assert len(holdings) > 0
 
 
-# class TestFundHoldingSchemas:
-#     def test_north_america_funding_holding(self):
-#         us_stock = [
-#             "AAPL",
-#             "APPLE INC",
-#             "IT",
-#             "Aandelen",
-#             {"display": "USD 26.189.981.895", "raw": 26189981895.15},
-#             {"display": "7,51", "raw": 7.51473},
-#             {"display": "26.189.981.895,15", "raw": 26189981895.15},
-#             {"display": "135.188.055", "raw": 135188055},
-#             "037833100",
-#             "US0378331005",
-#             "2046251",
-#             {"display": "193,73", "raw": 193.73},
-#             "Verenigde Staten",
-#             "NASDAQ",
-#             "USD",
-#             "1,00",
-#             "-",
-#         ]
+class TestFundHoldingSchemas:
+    def test_north_america_funding_holding(self):
+        us_stock = [
+            "AAPL",
+            "APPLE INC",
+            "IT",
+            "Aandelen",
+            {"display": "USD 26.189.981.895", "raw": 26189981895.15},
+            {"display": "7,51", "raw": 7.51473},
+            {"display": "26.189.981.895,15", "raw": 26189981895.15},
+            {"display": "135.188.055", "raw": 135188055},
+            "037833100",
+            "US0378331005",
+            "2046251",
+            {"display": "193,73", "raw": 193.73},
+            "Verenigde Staten",
+            "NASDAQ",
+            "USD",
+            "1,00",
+            "-",
+        ]
+        holdings = IsharesFundHoldingsScraper.map_to_schema(
+            "random_fund_name", us_stock
+        )
+        assert holdings == FundHolding(
+            fund_name="random_fund_name",
+            ticker="AAPL",
+            name="APPLE INC",
+            sector="IT",
+            instrument="Aandelen",
+            market_value=26189981895.15,
+            weight=7.51473,
+            nominal_value=26189981895.15,
+            nominal=135188055,
+            cusip="037833100",
+            isin="US0378331005",
+            sedol="2046251",
+            currency="USD",
+            country="Verenigde Staten",
+            exchange="NASDAQ",
+        )
 
-#     def test_rest_of_world_fund_holding(self):
-#         nl_stock = [
-#             "ASML",
-#             "ASML HOLDING NV",
-#             "IT",
-#             "Aandelen",
-#             {"display": "EUR 262.906.424", "raw": 262906423.8},
-#             {"display": "8,51", "raw": 8.51186},
-#             {"display": "262.906.423,80", "raw": 262906423.8},
-#             {"display": "398.766", "raw": 398766},
-#             "NL0010273215",
-#             {"display": "659,30", "raw": 659.3},
-#             "Nederland",
-#             "Euronext Amsterdam",
-#             "EUR",
-#         ]
+    def test_rest_of_world_fund_holding(self):
+        nl_stock = [
+            "ASML",
+            "ASML HOLDING NV",
+            "IT",
+            "Aandelen",
+            {"display": "EUR 262.906.424", "raw": 262906423.8},
+            {"display": "8,51", "raw": 8.51186},
+            {"display": "262.906.423,80", "raw": 262906423.8},
+            {"display": "398.766", "raw": 398766},
+            "NL0010273215",
+            {"display": "659,30", "raw": 659.3},
+            "Nederland",
+            "Euronext Amsterdam",
+            "EUR",
+        ]
+        holdings = IsharesFundHoldingsScraper.map_to_schema(
+            "random_fund_name", nl_stock
+        )
+        assert holdings == FundHolding(
+            fund_name="random_fund_name",
+            ticker="ASML",
+            name="ASML HOLDING NV",
+            sector="IT",
+            instrument="Aandelen",
+            market_value=262906423.8,
+            weight=8.51186,
+            nominal_value=262906423.8,
+            nominal=398766,
+            isin="NL0010273215",
+            currency="EUR",
+            country="Nederland",
+            exchange="Euronext Amsterdam",
+        )
 
-#     def test_non_stock(self):
-#         non_stock = [
-#             "GBP",
-#             "GBP CASH",
-#             "Liquide middelen en/of derivaten",
-#             "Liquiditeiten",
-#             {"display": "EUR 129.522", "raw": 129522},
-#             {"display": "0,00", "raw": 0.00419},
-#             {"display": "129.522,00", "raw": 129522},
-#             {"display": "110.747", "raw": 110747},
-#             "-",
-#             {"display": "116,95", "raw": 116.95},
-#             "Verenigd Koninkrijk",
-#             "-",
-#             "GBP",
-#         ]
+        # def test_non_stock(self):
+        #     non_stock = [
+        #         "GBP",
+        #         "GBP CASH",
+        #         "Liquide middelen en/of derivaten",
+        #         "Liquiditeiten",
+        #         {"display": "EUR 129.522", "raw": 129522},
+        #         {"display": "0,00", "raw": 0.00419},
+        #         {"display": "129.522,00", "raw": 129522},
+        #         {"display": "110.747", "raw": 110747},
+        #         "-",
+        #         {"display": "116,95", "raw": 116.95},
+        #         "Verenigd Koninkrijk",
+        #         "-",
+        #         "GBP",
+        #     ]
+
+        # def test_bond(self):
+        #     bond = [
+        #         "BLACKROCK CASH CL INST SL AGENCY",
+        #         "Liquide middelen en/of derivaten",
+        #         "Money Market",
+        #         {"display": "USD 4.392.919.230", "raw": 4392919229.69},
+        #         {"display": "4,69", "raw": 4.68829},
+        #         {"display": "4.392.919.229,69", "raw": 4392919229.69},
+        #         {"display": "4.391.601.749,00", "raw": 4391601749},
+        #         "066922519",
+        #         "US0669225197",
+        #         "BKGRT85",
+        #         "Verenigde Staten",
+        #         "-",
+        #         "USD",
+        #         {"display": "0,06", "raw": 0.06},
+        #         {"display": "5,16", "raw": 5.16},
+        #         "1,00",
+        #         {"display": "-", "raw": ""},
+        #         {"display": "5,28", "raw": 5.28},
+        #         "0,19",
+        #         {"display": "-", "raw": ""},
+        #         {"display": "5,16", "raw": 5.16},
+        #         "0,18",
+        #         "5,16",
+        #         "USD",
+        #         "-",
+        #         "04/feb/2009",
+        #     ]

@@ -40,8 +40,9 @@ def upgrade():
         sa.Column("cusip", sa.String(length=255), nullable=True),
         sa.Column("isin", sa.String(length=255), nullable=False),
         sa.Column("sedol", sa.String(length=255), nullable=True),
+        sa.Column("country", sa.String(length=255), nullable=False),
         sa.Column("currency", sa.String(length=255), nullable=False),
-        sa.Column("exchange", sa.String(length=255), nullable=False),
+        sa.Column("exchange", sa.String(length=255), nullable=True),
         sa.ForeignKeyConstraint(["fund_name"], ["fundreference.id_"]),
         sa.PrimaryKeyConstraint("id_"),
     )

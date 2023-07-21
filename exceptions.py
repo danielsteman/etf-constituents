@@ -6,5 +6,13 @@ class HoldingsNotScrapedException(Exception):
     pass
 
 
-class UnexpectedFundHoldingData(Exception):
+class UnsupportedFundHoldingData(Exception):
+    pass
+
+
+class AssetClassNotFoundException(Exception):
+    pass
+
+
+class AssetClassNotSupportedException(Exception):
     pass

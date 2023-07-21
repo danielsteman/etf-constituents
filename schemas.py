@@ -17,7 +17,8 @@ class FundHolding(BaseModel):
     isin: str
     sedol: Optional[str] = None
     currency: str
-    exchange: str
+    country: str
+    exchange: Optional[str] = None
 
 
 class FundReference(BaseModel):

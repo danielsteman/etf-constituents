@@ -21,8 +21,9 @@ class FundHolding(Base):
     cusip = Column(String(255), nullable=True)
     isin = Column(String(255))
     sedol = Column(String(255), nullable=True)
+    country = Column(String(255))
     currency = Column(String(255))
-    exchange = Column(String(255))
+    exchange = Column(String(255), nullable=True)
 
     reference = relationship("FundReference", back_populates="holdings")
 

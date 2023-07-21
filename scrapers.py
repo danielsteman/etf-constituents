@@ -30,12 +30,12 @@ import schemas
 from exceptions import (
     FundsNotScrapedException,
     HoldingsNotScrapedException,
-    UnexpectedFundHoldingData,
+    UnsupportedFundHoldingData,
 )
 from schemas import FundHolding, FundReference
 
 
-def retry_on_timeout(func):
+def retry(func):
     @wraps(func)
     def wrapper(self, *args, **kwargs):
         retries = 0
@@ -45,6 +45,13 @@ def retry_on_timeout(func):
             except TimeoutException:
                 retries += 1
                 print(f"Timeout occurred. Retrying ({retries}/{self.max_retries})")
+                time.sleep(self.retry_delay)
+            except HoldingsNotScrapedException:
+                retries += 1
+                print(
+                    f"Failed to extract holdings. Retrying \
+                    ({retries}/{self.max_retries})"
+                )
                 time.sleep(self.retry_delay)
         raise TimeoutError(f"Exceeded maximum retries ({self.max_retries})")
 
@@ -74,11 +81,14 @@ class Driver:
     def get(self, url: str) -> None:
         self.driver.get(url)
 
+    def wait(self, seconds: int) -> None:
+        time.sleep(seconds)
+
     @property
     def requests(self):
         return self.driver.requests
 
-    @retry_on_timeout
+    @retry
     def reject_cookies(self) -> None:
         accept_button = WebDriverWait(self.driver, 10).until(
             EC.element_to_be_clickable(
@@ -91,7 +101,7 @@ class Driver:
         accept_button.click()
         logging.info("Rejected cookies")
 
-    @retry_on_timeout
+    @retry
     def continue_as_professional_investor(self) -> None:
         continue_button = WebDriverWait(self.driver, 10).until(
             EC.element_to_be_clickable(
@@ -102,9 +112,9 @@ class Driver:
             )
         )
         continue_button.click()
-        logging.info("Enter as professional investor")
+        logging.info("Enter as professional investor.")
 
-    @retry_on_timeout
+    @retry
     def continue_as_individual_investor(self) -> None:
         continue_button = WebDriverWait(self.driver, 10).until(
             EC.element_to_be_clickable(
@@ -112,13 +122,21 @@ class Driver:
             )
         )
         continue_button.click()
-        logging.info("Enter as individual investor")
+        logging.info("Enter as individual investor.")
 
     def get_elements(self, xpath: str):
         elements = WebDriverWait(self.driver, 10).until(
             EC.presence_of_all_elements_located((By.XPATH, xpath))
         )
         return elements
+
+    def show_all_positions(self):
+        show_all_positions_button = "/html/body/div[1]/div[2]/div/div/div/div/div/div[13]/div/div/div/div[1]/ul/li[2]/a"  # noqa: E501
+        continue_button = WebDriverWait(self.driver, 10).until(
+            EC.element_to_be_clickable((By.XPATH, show_all_positions_button))
+        )
+        continue_button.click()
+        logging.info("Showing all positions tab.")
 
 
 class IsharesFundsListScraper:
@@ -135,7 +153,7 @@ class IsharesFundsListScraper:
             '//*[@id="screener-funds"]/screener-cards/div/section[*]/div/div[1]/screener-fund-cell/a'  # noqa: E501
         )
         if not sections:
-            raise FundsNotScrapedException("Sections have not been scraped")
+            raise FundsNotScrapedException("Sections have not been scraped.")
 
         funds_list = []
 
@@ -145,11 +163,13 @@ class IsharesFundsListScraper:
             if href:
                 funds_list.append(
                     FundReference(
-                        name=name, fund_manager=self.fund_manager.value, url=href
+                        name=name,
+                        fund_manager=self.fund_manager.value,
+                        url=href,
                     )
                 )
             else:
-                logging.warning(f"Found no href for {section.text}\n")
+                logging.warning(f"Found no href for {section.text}.\n")
 
         return funds_list
 
@@ -172,14 +192,18 @@ class IsharesFundHoldingsScraper:
     [IsharesFundHolding(), IsharesFundHolding(), ...]
     """
 
-    def __init__(self, url: str, fund_name: str) -> None:
-        self.url = url
-        self.fund_name = fund_name
+    def __init__(
+        self, fund_ref: FundReference, *, max_retries: int = 3, retry_delay: int = 1
+    ) -> None:
+        self.fund_ref = fund_ref
+        self.max_retries = max_retries
+        self.retry_delay = retry_delay
         self.driver = Driver(variant=ETFManager.ISHARES)
 
-    def map_to_schema(self, data: List):
+    @staticmethod
+    def map_to_schema(fund_name, data: List):
         common_args = {
-            "fund_name": self.fund_name,
+            "fund_name": fund_name,
             "ticker": data[0],
             "name": data[1],
             "sector": data[2],
@@ -195,36 +219,55 @@ class IsharesFundHoldingsScraper:
                 cusip=data[8],
                 isin=data[9],
                 sedol=data[10],
+                country=data[12],
                 exchange=data[13],
                 currency=data[14],
             )
-        elif len(data) == 14:
+        elif len(data) == 13:
             return schemas.FundHolding(
                 **common_args,
                 isin=data[8],
+                country=data[10],
                 exchange=data[11],
                 currency=data[12],
             )
+        elif len(data) == 26:
+            return schemas.FundHolding(
+                **common_args,
+                isin=data[8],
+                country=data[10],
+                currency=data[12],
+            )
         else:
-            raise UnexpectedFundHoldingData(
-                f"Data of lenght {len(data)} will probably not fit in the `FundHolding`\
+            raise UnsupportedFundHoldingData(
+                f"Data of length {len(data)} will probably not fit in the `FundHolding`\
                 schema."
             )
 
+    def should_be_intercepted(self, url: str) -> bool:
+        pattern = r"^https:\/\/www\.ishares\.com\/nl\/professionele-belegger\/nl\/producten\/.*\/.*\/.*\.ajax\?tab=all&fileType=json&asOfDate=.*$"  # noqa: E501
+        match = re.match(pattern, url)
+        if match:
+            return True
+        return False
+
+    @retry
     def get_holdings(self) -> List[FundHolding]:
-        self.driver.get(self.url)
+        self.driver.get(self.fund_ref.url)
         self.driver.reject_cookies()
         self.driver.continue_as_professional_investor()
 
         content_type = "application/json"
-        pattern = r"^https:\/\/www\.ishares\.com\/nl\/professionele-belegger\/nl\/producten\/.*\/.*\/.*\.ajax\?tab=all&fileType=json&asOfDate=.*$"  # noqa: E501
 
         holdings_list = []
 
+        self.driver.wait(1)  # wait for page to be fully loaded
+
         for req in self.driver.requests:
             if req.response:
-                if req.response.headers.get_content_type() == content_type and re.match(
-                    pattern, req.url
+                if (
+                    req.response.headers.get_content_type() == content_type
+                    and self.should_be_intercepted(req.url)
                 ):
                     compressed_data = req.response.body
                     decompressed_data = gzip.decompress(compressed_data)
@@ -238,7 +281,10 @@ class IsharesFundHoldingsScraper:
                         )
 
                     for holdings in holdings_dicts:
-                        holdings_list.append(self.map_to_schema(holdings))
+                        holding_obj = IsharesFundHoldingsScraper.map_to_schema(
+                            self.fund_ref.name, holdings
+                        )
+                        holdings_list.append(holding_obj)
 
         if not holdings_list:
             raise HoldingsNotScrapedException("Did not find requests to intercept.")
