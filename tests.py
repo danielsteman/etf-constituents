@@ -126,22 +126,40 @@ class TestFundHoldingSchemas:
             exchange="Euronext Amsterdam",
         )
 
-        # def test_non_stock(self):
-        #     non_stock = [
-        #         "GBP",
-        #         "GBP CASH",
-        #         "Liquide middelen en/of derivaten",
-        #         "Liquiditeiten",
-        #         {"display": "EUR 129.522", "raw": 129522},
-        #         {"display": "0,00", "raw": 0.00419},
-        #         {"display": "129.522,00", "raw": 129522},
-        #         {"display": "110.747", "raw": 110747},
-        #         "-",
-        #         {"display": "116,95", "raw": 116.95},
-        #         "Verenigd Koninkrijk",
-        #         "-",
-        #         "GBP",
-        #     ]
+    def test_non_stock(self):
+        non_stock = [
+            "GBP",
+            "GBP CASH",
+            "Liquide middelen en/of derivaten",
+            "Liquiditeiten",
+            {"display": "EUR 129.522", "raw": 129522},
+            {"display": "0,00", "raw": 0.00419},
+            {"display": "129.522,00", "raw": 129522},
+            {"display": "110.747", "raw": 110747},
+            "-",
+            {"display": "116,95", "raw": 116.95},
+            "Verenigd Koninkrijk",
+            "-",
+            "GBP",
+        ]
+        holdings = IsharesFundHoldingsScraper.map_to_schema(
+            "random_fund_name", non_stock
+        )
+        assert holdings == FundHolding(
+            fund_name="random_fund_name",
+            ticker="GBP",
+            name="GBP CASH",
+            sector="Liquide middelen en/of derivaten",
+            instrument="Liquiditeiten",
+            market_value=129522,
+            weight=0.00419,
+            nominal_value=129522,
+            nominal=110747,
+            isin="-",
+            currency="GBP",
+            exchange="-",
+            country="Verenigd Koninkrijk",
+        )
 
         # def test_bond(self):
         #     bond = [
