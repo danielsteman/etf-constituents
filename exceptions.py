@@ -4,3 +4,7 @@ class FundsNotScrapedException(Exception):
 
 class HoldingsNotScrapedException(Exception):
     pass
+
+
+class UnexpectedFundHoldingData(Exception):
+    pass

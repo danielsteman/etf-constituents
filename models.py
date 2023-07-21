@@ -18,7 +18,9 @@ class FundHolding(Base):
     weight = Column(Float)
     nominal_value = Column(Float)
     nominal = Column(Float)
+    cusip = Column(String(255), nullable=True)
     isin = Column(String(255))
+    sedol = Column(String(255), nullable=True)
     currency = Column(String(255))
     exchange = Column(String(255))
 

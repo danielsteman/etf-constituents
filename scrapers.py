@@ -26,7 +26,11 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 from seleniumwire import webdriver
 
-from exceptions import FundsNotScrapedException, HoldingsNotScrapedException
+from exceptions import (
+    FundsNotScrapedException,
+    HoldingsNotScrapedException,
+    UnexpectedFundHoldingData,
+)
 from schemas import FundHolding, FundReference
 import schemas
 
@@ -152,6 +156,11 @@ class IsharesFundsListScraper:
 
 class IsharesFundHoldingsScraper:
     """
+    The IsharesFundHoldingsScraper intercepts a request that is made to the
+    iShares backend to fetch fund holdings data when the fund page is loaded.
+    The response body contains an object with a list of holdings under the key
+    'aaData'. `FundHolding` is the corresponding schema.
+
     Example usage:
 
     scraper = IsharesFundScraper(
@@ -169,37 +178,36 @@ class IsharesFundHoldingsScraper:
         self.driver = Driver(variant=ETFManager.ISHARES)
 
     def map_to_schema(self, data: List):
+        common_args = {
+            "fund_name": self.fund_name,
+            "ticker": data[0],
+            "name": data[1],
+            "sector": data[2],
+            "instrument": data[3],
+            "market_value": data[4]["raw"],
+            "weight": data[5]["raw"],
+            "nominal_value": data[6]["raw"],
+            "nominal": data[7]["raw"],
+        }
         if len(data) == 17:
-            return schemas.FundHolding_(
-                fund_name=self.fund_name,
-                ticker=data[0],
-                name=data[1],
-                sector=data[2],
-                instrument=data[3],
-                market_value=data[4]["raw"],
-                weight=data[5]["raw"],
-                nominal_value=data[6]["raw"],
-                nominal=data[7]["raw"],
+            return schemas.FundHolding(
+                **common_args,
                 cusip=data[8],
                 isin=data[9],
                 sedol=data[10],
                 exchange=data[13],
                 currency=data[14],
             )
-        else:
-            return schemas.FundHolding_(
-                fund_name=self.fund_name,
-                ticker=data[0],
-                name=data[1],
-                sector=data[2],
-                instrument=data[3],
-                market_value=data[4]["raw"],
-                weight=data[5]["raw"],
-                nominal_value=data[6]["raw"],
-                nominal=data[7]["raw"],
+        elif len(data) == 14:
+            return schemas.FundHolding(
+                **common_args,
                 isin=data[8],
                 exchange=data[11],
                 currency=data[12],
+            )
+        else:
+            raise UnexpectedFundHoldingData(
+                f"Data of lenght {len(data)} will probably not fit in the `FundHolding` schema."
             )
 
     def get_holdings(self) -> List[FundHolding]:
@@ -225,25 +233,13 @@ class IsharesFundHoldingsScraper:
                         holdings_dicts = json.loads(decoded_string)["aaData"]
                     except IndexError:
                         raise HoldingsNotScrapedException(
-                            f"Holdings for {req.url} not found"
+                            f"Holdings for {req.url} not found in response body."
                         )
 
                     for holdings in holdings_dicts:
-                        holdings_object = FundHolding(
-                            fund_name=self.fund_name,
-                            ticker=holdings[0],
-                            name=holdings[1],
-                            sector=holdings[2],
-                            instrument=holdings[3],
-                            market_value=holdings[4]["raw"],
-                            weight=holdings[5]["raw"],
-                            nominal_value=holdings[6]["raw"],
-                            nominal=holdings[7]["raw"],
-                            isin=holdings[8],
-                            currency=holdings[12],
-                            exchange=holdings[11],
-                        )
+                        holdings_list.append(self.map_to_schema(holdings))
 
-                        holdings_list.append(holdings_object)
+        if not holdings_list:
+            raise HoldingsNotScrapedException("Did not find requests to intercept.")
 
         return holdings_list
