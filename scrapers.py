@@ -141,7 +141,9 @@ class Driver:
             element = self.driver.find_element(By.XPATH, xpath)
             text = element.get_attribute("innerText")
             if text:
-                return text.split()
+                headers = text.split()
+                print(f"Found headers: {headers}")
+                return headers
         except NoSuchElementException:
             print("Positions table headers not found.")
 
