@@ -1,3 +1,5 @@
+import pytest
+
 from enums import ETFManager
 from schemas import FundHolding, FundReference
 from scrapers import IsharesFundHoldingsScraper, IsharesFundsListScraper
@@ -28,6 +30,36 @@ class TestIsharesFundHoldingsScraper:
         scraper = IsharesFundHoldingsScraper(fund_ref)
         for url in urls:
             assert scraper.should_be_intercepted(url)
+
+    def test_get_positions_table_headers(self):
+        fund_ref = FundReference(
+            name="ishares-euro-stoxx-50-ucits-etf-inc-fund",
+            fund_manager="ishares",
+            url="https://www.ishares.com/nl/professionele-belegger/nl/producten/251781/ishares-euro-stoxx-50-ucits-etf-inc-fund",  # noqa: E501
+        )
+        scraper = IsharesFundHoldingsScraper(fund_ref)
+        scraper.driver.get(fund_ref.url)
+        scraper.driver.reject_cookies()
+        scraper.driver.continue_as_professional_investor()
+        scraper.driver.show_all_positions()
+        headers = scraper.driver.get_positions_table_headers()
+        if not headers:
+            pytest.fail("No headers were found")
+        assert headers == [
+            "Beurscode",
+            "emittent",
+            "Naam",
+            "Sector",
+            "Beleggingscategorie",
+            "Marktwaarde",
+            "Weging",
+            "(%)",
+            "Nominale",
+            "waarde",
+            "Nominaal",
+            "ISIN",
+            "Beursvaluta",
+        ]
 
     def test_get_holdings_stoxx50(self):
         fund_ref = FundReference(

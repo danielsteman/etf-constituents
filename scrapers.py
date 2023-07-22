@@ -16,7 +16,7 @@ import logging
 import re
 import time
 from functools import wraps
-from typing import List
+from typing import List, Optional
 
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.chrome.options import Options
@@ -134,6 +134,16 @@ class Driver:
             print("Showing all positions tab.")
         except NoSuchElementException:
             print("All positions tab is already active.")
+
+    def get_positions_table_headers(self) -> Optional[List[str]]:
+        try:
+            xpath = "/html/body/div[1]/div[2]/div/div/div/div/div/div[13]/div/div/div/div[1]/div[1]/div[1]/div[2]/div[1]/div[1]/div/table/thead/tr"  # noqa: E501
+            element = self.driver.find_element(By.XPATH, xpath)
+            text = element.get_attribute("innerText")
+            if text:
+                return text.split()
+        except NoSuchElementException:
+            print("Positions table headers not found.")
 
 
 class IsharesFundsListScraper:
@@ -269,6 +279,8 @@ class IsharesFundHoldingsScraper:
         self.driver.reject_cookies()
         self.driver.continue_as_professional_investor()
         self.driver.show_all_positions()
+
+        print(self.driver.get_positions_table_headers())
 
         content_type = "application/json"
 
