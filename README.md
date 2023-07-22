@@ -41,10 +41,12 @@ The id (e.g. `1467271812596` in this example) in the request URL seems arbitrary
 
 # Next up
 
+- [ ] Find robust mechanism to map reponse body data to `FundHolding`
 - [ ] Add pagination for fund list scraper
 - [x] Create funds table and holdings table, which have a relationship. Use Alembic.
 - [ ] Create script to call web scrapers and load data in database.
 - [ ] Create FastAPI app to handle requests to query holdings of funds.
 
 # Relevant links
+
 [ETF holding api comparison](https://datarade.ai/top-lists/best-etf-holdings-apis)

@@ -142,7 +142,7 @@ class Driver:
             text = element.get_attribute("innerText")
             if text:
                 headers = text.split()
-                print(f"Found headers: {headers}")
+                print(f"Found headers: {headers}. Length: {len(headers)}")
                 return headers
         except NoSuchElementException:
             print("Positions table headers not found.")
@@ -212,6 +212,24 @@ class IsharesFundHoldingsScraper:
 
     @staticmethod
     def map_to_schema(fund_name, data: List):
+        if len(data) == 18:
+            return schemas.FundHolding(
+                fund_name=fund_name,
+                ticker=data[0],
+                name=data[1],
+                sector=data[3],
+                instrument=data[4],
+                market_value=data[5]["raw"],
+                weight=data[6]["raw"],
+                nominal_value=data[7]["raw"],
+                nominal=data[8]["raw"],
+                cusip=data[9],
+                isin=data[10],
+                sedol=data[11],
+                country=data[13],
+                exchange=data[14],
+                currency=data[15],
+            )
         if len(data) == 17:
             return schemas.FundHolding(
                 fund_name=fund_name,
@@ -262,6 +280,22 @@ class IsharesFundHoldingsScraper:
                 country=data[10],
                 currency=data[12],
             )
+        elif len(data) == 27:
+            return schemas.FundHolding(
+                fund_name=fund_name,
+                name=data[0],
+                sector=data[1],
+                instrument=data[2],
+                market_value=data[3]["raw"],
+                weight=data[4]["raw"],
+                nominal_value=data[5]["raw"],
+                nominal=data[6]["raw"],
+                cusip=data[7],
+                isin=data[8],
+                sedol=data[9],
+                country=data[11],
+                currency=data[13],
+            )
         else:
             raise UnsupportedFundHoldingData(
                 f"Data of length {len(data)} will probably not fit in the `FundHolding`\
@@ -281,8 +315,7 @@ class IsharesFundHoldingsScraper:
         self.driver.reject_cookies()
         self.driver.continue_as_professional_investor()
         self.driver.show_all_positions()
-
-        print(self.driver.get_positions_table_headers())
+        self.driver.get_positions_table_headers()
 
         content_type = "application/json"
 
@@ -306,6 +339,8 @@ class IsharesFundHoldingsScraper:
                         raise HoldingsNotScrapedException(
                             f"Holdings for {req.url} not found in response body."
                         )
+
+                    print(f"Length of holding data: {len(holdings_dicts[0])}")
 
                     for holdings in holdings_dicts:
                         holding_obj = IsharesFundHoldingsScraper.map_to_schema(
