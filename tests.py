@@ -1,6 +1,7 @@
 import pytest
 
 from enums import ETFManager
+from exceptions import HoldingsNotScrapedException
 from schemas import FundHolding, FundReference
 from scrapers import IsharesFundHoldingsScraper, IsharesFundsListScraper
 
@@ -90,6 +91,21 @@ class TestIsharesFundHoldingsScraper:
         scraper = IsharesFundHoldingsScraper(fund_ref, max_retries=1)
         holdings = scraper.get_holdings()
         assert len(holdings) > 0
+
+    def test_skip_fund_without_holdings(self):
+        fund_ref = FundReference(
+            name="iShares Developed World Index Fund (IE)",
+            fund_manager="ishares",
+            url="https://www.ishares.com/nl/professionele-belegger/nl/producten/228471/blackrock-blk-developed-world-index-flex-acc-eur-fund",  # noqa: E501
+        )
+        scraper = IsharesFundHoldingsScraper(
+            fund_ref, skip_empty_funds=True, max_retries=1
+        )
+        try:
+            holdings = scraper.get_holdings()
+            assert not holdings
+        except HoldingsNotScrapedException:
+            pytest.fail("Failed to skip fund without holdings.")
 
 
 class TestFundHoldingSchemas:

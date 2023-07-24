@@ -203,9 +203,15 @@ class IsharesFundHoldingsScraper:
     """
 
     def __init__(
-        self, fund_ref: FundReference, *, max_retries: int = 3, retry_delay: int = 1
+        self,
+        fund_ref: FundReference,
+        *,
+        skip_empty_funds: bool = False,
+        max_retries: int = 3,
+        retry_delay: int = 1,
     ) -> None:
         self.fund_ref = fund_ref
+        self.skip_empty_funds = skip_empty_funds
         self.max_retries = max_retries
         self.retry_delay = retry_delay
         self.driver = Driver(variant=ETFManager.ISHARES)
@@ -349,6 +355,14 @@ class IsharesFundHoldingsScraper:
                         holdings_list.append(holding_obj)
 
         if not holdings_list:
-            raise HoldingsNotScrapedException("Did not find requests to intercept.")
+            if self.skip_empty_funds:
+                print(
+                    f"""
+                    Did not find requests to intercept.
+                    Skipping this fund: {self.fund_ref}.
+                    """
+                )
+            else:
+                raise HoldingsNotScrapedException("Did not find requests to intercept.")
 
         return holdings_list
