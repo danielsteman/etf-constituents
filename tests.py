@@ -3,7 +3,7 @@ import pytest
 from enums import ETFManager
 from exceptions import HoldingsNotScrapedException
 from schemas import FundHolding, FundReference
-from scrapers import IsharesFundHoldingsScraper, IsharesFundsListScraper
+from scrapers import IsharesFundHoldingsScraper, IsharesFundsListScraper, PaginatedUrl
 
 
 class TestIsharesFundsListScraper:
@@ -265,3 +265,26 @@ class TestFundHoldingSchemas:
             currency="USD",
             country="Verenigde Staten",
         )
+
+
+class TestPaginatedUrl:
+    def test_paginated_url(self):
+        expected_urls = [
+            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFactspageNumber=1",
+            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFactspageNumber=2",
+            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFactspageNumber=3",
+            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFactspageNumber=4",
+            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFactspageNumber=5",
+        ]
+        urls = PaginatedUrl(
+            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFactspageNumber=1",
+            r"(?<=pageNumber=)(\d+)",
+        )
+        generated_urls = []
+        count = 0
+        for url in urls:
+            if count == 5:
+                break
+            generated_urls.append(url)
+            count += 1
+        assert expected_urls == generated_urls

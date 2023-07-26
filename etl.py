@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session, sessionmaker
 import models
 import schemas
 from enums import ETFManager
-from scrapers import IsharesFundHoldingsScraper, IsharesFundsListScraper
+from scrapers import IsharesFundsListScraper
 
 load_dotenv()
 
@@ -35,13 +35,16 @@ fund_list = fund_list_scraper.get_funds_list()
 
 print(f"{len(fund_list)} ishares funds found.")
 
-db = get_db()
-for fund_ref in fund_list:
-    print(f"Processing fund name: {fund_ref.name}.")
-    print(f"Processing fund url: {fund_ref.url}.")
+# db = get_db()
 
-    holdings_scraper = IsharesFundHoldingsScraper(fund_ref)
-    holdings = holdings_scraper.get_holdings()
+# fund_holdings_list = []
+
+# for fund_ref in fund_list:
+#     holdings_scraper = IsharesFundHoldingsScraper(fund_ref, skip_empty_funds=True)
+#     holdings = holdings_scraper.get_holdings()
+#     fund_holdings_list.append(holdings)
+
+
 #     for holding in holdings:
 #         print(f"Processing holding: {holding.name}.")
 

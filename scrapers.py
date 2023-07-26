@@ -15,9 +15,11 @@ import json
 import logging
 import re
 import time
+from dataclasses import dataclass
 from functools import wraps
 from typing import List, Optional
 
+import requests
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
@@ -33,6 +35,12 @@ from exceptions import (
     UnsupportedFundHoldingData,
 )
 from schemas import FundHolding, FundReference
+
+
+@dataclass
+class ScraperStats:
+    n_scraped: int = 0
+    n_skipped: int = 0
 
 
 def retry(func):
@@ -148,6 +156,28 @@ class Driver:
             print("Positions table headers not found.")
 
 
+class PaginatedUrl:
+    def __init__(self, url: str, pattern: str, n_page: int = 1):
+        self.url = url
+        self.pattern = pattern
+        self.n_page = n_page
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        new_url = re.sub(self.pattern, str(self.n_page), self.url)
+        if self._page_exists(new_url):
+            self.n_page += 1
+            return new_url
+        else:
+            raise StopIteration
+
+    def _page_exists(self, url: str) -> bool:
+        response = requests.get(url)
+        return response.status_code == 200
+
+
 class IsharesFundsListScraper:
     def __init__(self, url: str, fund_manager: ETFManager) -> None:
         self.url = url
@@ -158,6 +188,7 @@ class IsharesFundsListScraper:
         self.driver.get(self.url)
         self.driver.reject_cookies()
         self.driver.continue_as_professional_investor()
+
         sections = self.driver.get_elements(
             '//*[@id="screener-funds"]/screener-cards/div/section[*]/div/div[1]/screener-fund-cell/a'  # noqa: E501
         )
@@ -215,6 +246,8 @@ class IsharesFundHoldingsScraper:
         self.max_retries = max_retries
         self.retry_delay = retry_delay
         self.driver = Driver(variant=ETFManager.ISHARES)
+
+        print(f"Initialized {self.__class__.__name__} for {fund_ref}.")
 
     @staticmethod
     def map_to_schema(fund_name, data: List):
@@ -366,3 +399,17 @@ class IsharesFundHoldingsScraper:
                 raise HoldingsNotScrapedException("Did not find requests to intercept.")
 
         return holdings_list
+
+
+class FundDataManager:
+    def __init__(self) -> None:
+        self.stats = ScraperStats()
+
+    def scrape():
+        # get list of fund refs
+        # for each fund ref get holdings
+        pass
+
+    def load():
+        # load holdings in database
+        pass
