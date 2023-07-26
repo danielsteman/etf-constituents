@@ -29,7 +29,7 @@ class FundHolding(Base):
 
 
 class FundReference(Base):
-    __tablename__ = "fundreference"
+    __tablename__ = "fundreferences"
 
     id_ = Column(Integer, primary_key=True, index=True)
     name = Column(String(255))

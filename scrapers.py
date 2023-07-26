@@ -405,11 +405,11 @@ class FundDataManager:
     def __init__(self) -> None:
         self.stats = ScraperStats()
 
-    def scrape():
+    def scrape(self):
         # get list of fund refs
         # for each fund ref get holdings
         pass
 
-    def load():
+    def load(self):
         # load holdings in database
         pass
