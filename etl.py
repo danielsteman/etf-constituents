@@ -31,7 +31,7 @@ fund_list_scraper = IsharesFundsListScraper(
     ETFManager.ISHARES,  # type: ignore
 )
 
-fund_list = fund_list_scraper.get_funds_list()
+fund_list = fund_list_scraper.get_all_funds()
 
 print(f"{len(fund_list)} ishares funds found.")
 

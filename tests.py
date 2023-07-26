@@ -7,12 +7,22 @@ from scrapers import IsharesFundHoldingsScraper, IsharesFundsListScraper, Pagina
 
 
 class TestIsharesFundsListScraper:
-    def test_get_fund_list(self):
+    def test_get_funds(self):
         fund_list_scraper = IsharesFundsListScraper(
             "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFactspageNumber=1",  # noqa: E501
             ETFManager.ISHARES,  # type: ignore
         )
-        fund_list = fund_list_scraper.get_funds_list()
+        fund_list = fund_list_scraper._get_funds(
+            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFactspageNumber=1"
+        )  # noqa: E501
+        assert len(fund_list) > 0
+
+    def test_get_all_funds(self):
+        fund_list_scraper = IsharesFundsListScraper(
+            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFactspageNumber=1",  # noqa: E501
+            ETFManager.ISHARES,  # type: ignore
+        )
+        fund_list = fund_list_scraper.get_all_funds()
         assert len(fund_list) > 0
 
 

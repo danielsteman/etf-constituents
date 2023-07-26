@@ -168,6 +168,7 @@ class PaginatedUrl:
     def __next__(self):
         new_url = re.sub(self.pattern, str(self.n_page), self.url)
         if self._page_exists(new_url):
+            print(f"Scraping funds from page: {new_url}")
             self.n_page += 1
             return new_url
         else:
@@ -180,14 +181,28 @@ class PaginatedUrl:
 
 class IsharesFundsListScraper:
     def __init__(self, url: str, fund_manager: ETFManager) -> None:
-        self.url = url
+        self.urls = PaginatedUrl(url, r"(?<=pageNumber=)(\d+)")
         self.fund_manager = fund_manager
         self.driver = Driver(variant=fund_manager)
 
-    def get_funds_list(self) -> List[FundReference]:
-        self.driver.get(self.url)
-        self.driver.reject_cookies()
-        self.driver.continue_as_professional_investor()
+    def get_all_funds(self) -> List[FundReference]:
+        data = []
+        first = True
+        for url in self.urls:
+            if first:
+                data += self._get_funds(url)
+                first = False
+            else:
+                data += self._get_funds(url, continue_session=True)
+        return data
+
+    def _get_funds(
+        self, url: str, *, continue_session: bool = False
+    ) -> List[FundReference]:
+        self.driver.get(url)
+        if not continue_session:
+            self.driver.reject_cookies()
+            self.driver.continue_as_professional_investor()
 
         sections = self.driver.get_elements(
             '//*[@id="screener-funds"]/screener-cards/div/section[*]/div/div[1]/screener-fund-cell/a'  # noqa: E501
