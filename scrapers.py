@@ -12,7 +12,6 @@ scraper.get_holdings() sometimes returns an empty list
 
 import gzip
 import json
-import logging
 import re
 import time
 from dataclasses import dataclass
@@ -34,7 +33,10 @@ from exceptions import (
     HoldingsNotScrapedException,
     UnsupportedFundHoldingData,
 )
+from logger import setup_logger
 from schemas import FundHolding, FundReference
+
+logger = setup_logger()
 
 
 @dataclass
@@ -52,11 +54,13 @@ def retry(func):
                 return func(self, *args, **kwargs)
             except TimeoutException:
                 retries += 1
-                print(f"Timeout occurred. Retrying ({retries}/{self.max_retries})")
+                logger.warning(
+                    f"Timeout occurred. Retrying ({retries}/{self.max_retries})"
+                )
                 time.sleep(self.retry_delay)
             except HoldingsNotScrapedException:
                 retries += 1
-                print(
+                logger.warning(
                     f"Failed to extract holdings. Retrying\
                     ({retries}/{self.max_retries})"
                 )
@@ -103,7 +107,7 @@ class Driver:
             )
         )
         accept_button.click()
-        logging.info("Rejected cookies")
+        logger.info("Rejected cookies")
 
     @retry
     def continue_as_professional_investor(self) -> None:
@@ -116,7 +120,7 @@ class Driver:
             )
         )
         continue_button.click()
-        logging.info("Enter as professional investor.")
+        logger.info("Enter as professional investor.")
 
     @retry
     def continue_as_individual_investor(self) -> None:
@@ -126,7 +130,7 @@ class Driver:
             )
         )
         continue_button.click()
-        logging.info("Enter as individual investor.")
+        logger.info("Enter as individual investor.")
 
     def get_elements(self, xpath: str):
         elements = WebDriverWait(self.driver, 10).until(
@@ -139,9 +143,9 @@ class Driver:
             xpath = "/html/body/div[1]/div[2]/div/div/div/div/div/div[13]/div/div/div/div[1]/ul/li[2]/a"  # noqa: E501
             element = self.driver.find_element(By.XPATH, xpath)
             element.click()
-            print("Showing all positions tab.")
+            logger.info("Showing all positions tab.")
         except NoSuchElementException:
-            print("All positions tab is already active.")
+            logger.info("All positions tab is already active.")
 
     def get_positions_table_headers(self) -> Optional[List[str]]:
         try:
@@ -150,10 +154,10 @@ class Driver:
             text = element.get_attribute("innerText")
             if text:
                 headers = text.split()
-                print(f"Found headers: {headers}. Length: {len(headers)}")
+                logger.info(f"Found headers: {headers}. Length: {len(headers)}")
                 return headers
         except NoSuchElementException:
-            print("Positions table headers not found.")
+            logger.info("Positions table headers not found.")
 
 
 class PaginatedUrl:
@@ -168,27 +172,29 @@ class PaginatedUrl:
     def __next__(self):
         new_url = re.sub(self.pattern, str(self.n_page), self.url)
         if self._page_exists(new_url):
-            print(f"Scraping funds from page: {new_url}")
+            logger.info(f"Scraping funds from page: {new_url}")
             self.n_page += 1
             return new_url
         else:
             raise StopIteration
 
-    def _page_exists(self, url: str) -> bool:
+    def _page_exists(
+        self, url: str
+    ) -> bool:  # page 9e1000 still exists so this always -> True
         response = requests.get(url)
         return response.status_code == 200
 
 
 class IsharesFundsListScraper:
     def __init__(self, url: str, fund_manager: ETFManager) -> None:
-        self.urls = PaginatedUrl(url, r"(?<=pageNumber=)(\d+)")
+        self.paginated_url = PaginatedUrl(url, r"(?<=pageNumber=)(\d+)")
         self.fund_manager = fund_manager
         self.driver = Driver(variant=fund_manager)
 
     def get_all_funds(self) -> List[FundReference]:
         data = []
         first = True
-        for url in self.urls:
+        for url in self.paginated_url:
             if first:
                 data += self._get_funds(url)
                 first = False
@@ -208,12 +214,16 @@ class IsharesFundsListScraper:
             '//*[@id="screener-funds"]/screener-cards/div/section[*]/div/div[1]/screener-fund-cell/a'  # noqa: E501
         )
 
+        logger.info(f"{len(sections)} sections found.")
+
         if not sections:
             raise FundsNotScrapedException("Sections have not been scraped.")
 
         funds_list = []
 
         for section in sections:
+            logger.info(f"Section found: {section.text}")
+
             name = section.text
             href = section.get_attribute("href")
             if href:
@@ -225,7 +235,7 @@ class IsharesFundsListScraper:
                     )
                 )
             else:
-                logging.warning(f"Found no href for {section.text}.\n")
+                logger.info(f"Found no href for {section.text}.\n")
 
         return funds_list
 
@@ -262,7 +272,7 @@ class IsharesFundHoldingsScraper:
         self.retry_delay = retry_delay
         self.driver = Driver(variant=ETFManager.ISHARES)
 
-        print(f"Initialized {self.__class__.__name__} for {fund_ref}.")
+        logger.info(f"Initialized {self.__class__.__name__} for {fund_ref}.")
 
     @staticmethod
     def map_to_schema(fund_name, data: List):
@@ -394,7 +404,7 @@ class IsharesFundHoldingsScraper:
                             f"Holdings for {req.url} not found in response body."
                         )
 
-                    print(f"Length of holding data: {len(holdings_dicts[0])}")
+                    logger.info(f"Length of holding data: {len(holdings_dicts[0])}")
 
                     for holdings in holdings_dicts:
                         holding_obj = IsharesFundHoldingsScraper.map_to_schema(
@@ -404,7 +414,7 @@ class IsharesFundHoldingsScraper:
 
         if not holdings_list:
             if self.skip_empty_funds:
-                print(
+                logger.warning(
                     f"""
                     Did not find requests to intercept.
                     Skipping this fund: {self.fund_ref}.
