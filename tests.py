@@ -1,7 +1,4 @@
-import time
-
 import pytest
-from selenium.webdriver.common.by import By
 
 from enums import ETFManager
 from exceptions import HoldingsNotScrapedException
@@ -18,44 +15,6 @@ class TestIsharesFundsListScraper:
         fund_list = fund_list_scraper._get_funds(
             "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFacts&pageNumber=1"
         )
-        assert len(fund_list) > 0
-
-    def test_get_fund_on_last_page(self):
-        fund_list_scraper = IsharesFundsListScraper(
-            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFacts&pageNumber=1",
-            ETFManager.ISHARES,
-        )
-        fund_list_scraper.driver.get(
-            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFacts&pageNumber=1"
-        )
-        fund_list_scraper.driver.reject_cookies()
-        fund_list_scraper.driver.continue_as_professional_investor()
-        fund_list_scraper.driver.get(
-            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFacts&pageNumber=33"
-        )
-
-        # time.sleep(2)
-
-        # with open("page_source.html", "w", encoding="utf-8") as f:
-        #     f.write(fund_list_scraper.driver.driver.page_source)
-
-        # xpath = '//*[contains(@id, "fund-cell-")]/a'
-        # xpath = "//table"
-
-        time.sleep(2)
-
-        elements = fund_list_scraper.driver.driver.find_elements(
-            By.CLASS_NAME, "link-to-product-page"
-        )
-
-        # elements = WebDriverWait(fund_list_scraper.driver.driver, 10).until(
-        #     EC.presence_of_all_elements_located((By.XPATH, xpath))
-        # )
-
-        print([x.text for x in elements])
-
-        fund_list = [1, 2]
-
         assert len(fund_list) > 0
 
     def test_page_by_query_param(self):
