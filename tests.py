@@ -13,8 +13,8 @@ class TestIsharesFundsListScraper:
             ETFManager.ISHARES,  # type: ignore
         )
         fund_list = fund_list_scraper._get_funds(
-            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFactspageNumber=1"
-        )  # noqa: E501
+            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFactspageNumber=1"  # noqa: E501
+        )
         assert len(fund_list) > 0
 
     def test_get_all_funds(self):
@@ -24,6 +24,21 @@ class TestIsharesFundsListScraper:
         )
         fund_list = fund_list_scraper.get_all_funds()
         assert len(fund_list) > 0
+
+    def test_page_by_query_param(self):
+        fund_list_scraper = IsharesFundsListScraper(
+            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFactspageNumber=1",  # noqa: E501
+            ETFManager.ISHARES,  # type: ignore
+        )
+        fund_list_page_1 = fund_list_scraper._get_funds(
+            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFactspageNumber=1"
+        )
+        print(fund_list_page_1)
+        fund_list_page_2 = fund_list_scraper._get_funds(
+            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFactspageNumber=2"
+        )
+        print(fund_list_page_2)
+        assert fund_list_page_1 != fund_list_page_2
 
 
 class TestIsharesFundHoldingsScraper:
