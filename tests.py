@@ -36,6 +36,14 @@ class TestIsharesFundsListScraper:
 
         assert fund_list_page_1_names != fund_list_page_2_names
 
+    def test_get_all_funds(self):
+        fund_list_scraper = IsharesFundsListScraper(
+            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFacts&pageNumber=1",
+            ETFManager.ISHARES,
+        )
+        fund_list = fund_list_scraper.get_all_funds()
+        assert len(fund_list) > 0
+
 
 class TestIsharesFundHoldingsScraper:
     def test_intercept_request_regex(self):

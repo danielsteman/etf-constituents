@@ -192,6 +192,10 @@ class IsharesFundsListScraper:
         self.driver = Driver(variant=fund_manager)
 
     def get_all_funds(self) -> List[FundReference]:
+        """
+        TODO: TimeoutException will be raised after the last page.
+        This should be handled.
+        """
         data = []
         first = True
         for url in self.paginated_url:
