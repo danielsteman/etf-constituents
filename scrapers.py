@@ -205,6 +205,8 @@ class IsharesFundsListScraper:
     def _get_funds(
         self, url: str, *, continue_session: bool = False
     ) -> List[FundReference]:
+        logger.info(f"Scraping funds from {url}")
+
         self.driver.get(url)
         if not continue_session:
             self.driver.reject_cookies()
@@ -213,6 +215,10 @@ class IsharesFundsListScraper:
         sections = self.driver.get_elements(
             '//*[@id="screener-funds"]/screener-cards/div/section[*]/div/div[1]/screener-fund-cell/a'  # noqa: E501
         )
+
+        alternative_xpath = '//*[contains(@id, "fund-cell-")]/a'
+        alternative_sections = self.driver.get_elements(alternative_xpath)
+        # logger.info(f"Alternative sections: {[x.name for x in alternative_sections]}")
 
         logger.info(f"{len(sections)} sections found.")
 

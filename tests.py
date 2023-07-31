@@ -4,40 +4,77 @@ from enums import ETFManager
 from exceptions import HoldingsNotScrapedException
 from schemas import FundHolding, FundReference
 from scrapers import IsharesFundHoldingsScraper, IsharesFundsListScraper, PaginatedUrl
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.wait import WebDriverWait
+import time
 
 
 class TestIsharesFundsListScraper:
     def test_get_funds(self):
         fund_list_scraper = IsharesFundsListScraper(
-            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFactspageNumber=1",  # noqa: E501
+            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFacts&pageNumber=1",  # noqa: E501
             ETFManager.ISHARES,  # type: ignore
         )
         fund_list = fund_list_scraper._get_funds(
-            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFactspageNumber=1"  # noqa: E501
+            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFacts&pageNumber=1"  # noqa: E501
         )
         assert len(fund_list) > 0
 
-    def test_get_all_funds(self):
+    def test_get_fund_on_last_page(self):
         fund_list_scraper = IsharesFundsListScraper(
-            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFactspageNumber=1",  # noqa: E501
+            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFacts&pageNumber=1",  # noqa: E501
             ETFManager.ISHARES,  # type: ignore
         )
-        fund_list = fund_list_scraper.get_all_funds()
+        fund_list_scraper.driver.get(
+            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFacts&pageNumber=1"
+        )
+        fund_list_scraper.driver.reject_cookies()
+        fund_list_scraper.driver.continue_as_professional_investor()
+
+        time.sleep(2)
+
+        with open("page_source.html", "w", encoding="utf-8") as f:
+            f.write(fund_list_scraper.driver.driver.page_source)
+
+        xpath = '//*[contains(@id, "fund-cell-")]/a'
+        xpath = "//table"
+
+        time.sleep(2)
+
+        elements = fund_list_scraper.driver.driver.find_elements(By.XPATH, xpath)
+
+        # elements = WebDriverWait(fund_list_scraper.driver.driver, 10).until(
+        #     EC.presence_of_all_elements_located((By.XPATH, xpath))
+        # )
+
+        print(elements)
+
+        # el = fund_list_scraper.driver.get_elements('//*[contains(@id, "fund-cell-")]/a')
+
+        # fund_list = fund_list_scraper._get_funds(
+        #     "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFacts&pageNumber=33"
+        # )
+        fund_list = [1, 2]
+
         assert len(fund_list) > 0
 
     def test_page_by_query_param(self):
         fund_list_scraper = IsharesFundsListScraper(
-            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFactspageNumber=1",  # noqa: E501
+            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFacts&pageNumber=1",  # noqa: E501
             ETFManager.ISHARES,  # type: ignore
         )
+
         fund_list_page_1 = fund_list_scraper._get_funds(
-            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFactspageNumber=1"
+            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFacts&pageNumber=1"
         )
         print(fund_list_page_1)
+
         fund_list_page_2 = fund_list_scraper._get_funds(
-            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFactspageNumber=2"
+            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFacts&pageNumber=2"
         )
         print(fund_list_page_2)
+
         assert fund_list_page_1 != fund_list_page_2
 
 
@@ -295,14 +332,14 @@ class TestFundHoldingSchemas:
 class TestPaginatedUrl:
     def test_paginated_url(self):
         expected_urls = [
-            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFactspageNumber=1",
-            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFactspageNumber=2",
-            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFactspageNumber=3",
-            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFactspageNumber=4",
-            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFactspageNumber=5",
+            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFacts&pageNumber=1",
+            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFacts&pageNumber=2",
+            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFacts&pageNumber=3",
+            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFacts&pageNumber=4",
+            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFacts&pageNumber=5",
         ]
         urls = PaginatedUrl(
-            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFactspageNumber=1",
+            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFacts&pageNumber=1",
             r"(?<=pageNumber=)(\d+)",
         )
         generated_urls = []
