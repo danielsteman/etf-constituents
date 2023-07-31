@@ -1,13 +1,12 @@
+import time
+
 import pytest
+from selenium.webdriver.common.by import By
 
 from enums import ETFManager
 from exceptions import HoldingsNotScrapedException
 from schemas import FundHolding, FundReference
 from scrapers import IsharesFundHoldingsScraper, IsharesFundsListScraper, PaginatedUrl
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.wait import WebDriverWait
-import time
 
 
 class TestIsharesFundsListScraper:
@@ -31,30 +30,30 @@ class TestIsharesFundsListScraper:
         )
         fund_list_scraper.driver.reject_cookies()
         fund_list_scraper.driver.continue_as_professional_investor()
+        fund_list_scraper.driver.get(
+            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFacts&pageNumber=33"
+        )
+
+        # time.sleep(2)
+
+        # with open("page_source.html", "w", encoding="utf-8") as f:
+        #     f.write(fund_list_scraper.driver.driver.page_source)
+
+        # xpath = '//*[contains(@id, "fund-cell-")]/a'
+        # xpath = "//table"
 
         time.sleep(2)
 
-        with open("page_source.html", "w", encoding="utf-8") as f:
-            f.write(fund_list_scraper.driver.driver.page_source)
-
-        xpath = '//*[contains(@id, "fund-cell-")]/a'
-        xpath = "//table"
-
-        time.sleep(2)
-
-        elements = fund_list_scraper.driver.driver.find_elements(By.XPATH, xpath)
+        elements = fund_list_scraper.driver.driver.find_elements(
+            By.CLASS_NAME, "link-to-product-page"
+        )
 
         # elements = WebDriverWait(fund_list_scraper.driver.driver, 10).until(
         #     EC.presence_of_all_elements_located((By.XPATH, xpath))
         # )
 
-        print(elements)
+        print([x.text for x in elements])
 
-        # el = fund_list_scraper.driver.get_elements('//*[contains(@id, "fund-cell-")]/a')
-
-        # fund_list = fund_list_scraper._get_funds(
-        #     "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFacts&pageNumber=33"
-        # )
         fund_list = [1, 2]
 
         assert len(fund_list) > 0
@@ -68,14 +67,14 @@ class TestIsharesFundsListScraper:
         fund_list_page_1 = fund_list_scraper._get_funds(
             "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFacts&pageNumber=1"
         )
-        print(fund_list_page_1)
+        fund_list_page_1_names = [x.name for x in fund_list_page_1]
 
         fund_list_page_2 = fund_list_scraper._get_funds(
             "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFacts&pageNumber=2"
         )
-        print(fund_list_page_2)
+        fund_list_page_2_names = [x.name for x in fund_list_page_2]
 
-        assert fund_list_page_1 != fund_list_page_2
+        assert fund_list_page_1_names != fund_list_page_2_names
 
 
 class TestIsharesFundHoldingsScraper:

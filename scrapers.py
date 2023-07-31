@@ -216,10 +216,6 @@ class IsharesFundsListScraper:
             '//*[@id="screener-funds"]/screener-cards/div/section[*]/div/div[1]/screener-fund-cell/a'  # noqa: E501
         )
 
-        alternative_xpath = '//*[contains(@id, "fund-cell-")]/a'
-        alternative_sections = self.driver.get_elements(alternative_xpath)
-        # logger.info(f"Alternative sections: {[x.name for x in alternative_sections]}")
-
         logger.info(f"{len(sections)} sections found.")
 
         if not sections:
