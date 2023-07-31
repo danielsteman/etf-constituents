@@ -12,18 +12,18 @@ from scrapers import IsharesFundHoldingsScraper, IsharesFundsListScraper, Pagina
 class TestIsharesFundsListScraper:
     def test_get_funds(self):
         fund_list_scraper = IsharesFundsListScraper(
-            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFacts&pageNumber=1",  # noqa: E501
-            ETFManager.ISHARES,  # type: ignore
+            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFacts&pageNumber=1",
+            ETFManager.ISHARES,
         )
         fund_list = fund_list_scraper._get_funds(
-            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFacts&pageNumber=1"  # noqa: E501
+            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFacts&pageNumber=1"
         )
         assert len(fund_list) > 0
 
     def test_get_fund_on_last_page(self):
         fund_list_scraper = IsharesFundsListScraper(
-            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFacts&pageNumber=1",  # noqa: E501
-            ETFManager.ISHARES,  # type: ignore
+            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFacts&pageNumber=1",
+            ETFManager.ISHARES,
         )
         fund_list_scraper.driver.get(
             "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFacts&pageNumber=1"
@@ -60,8 +60,8 @@ class TestIsharesFundsListScraper:
 
     def test_page_by_query_param(self):
         fund_list_scraper = IsharesFundsListScraper(
-            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFacts&pageNumber=1",  # noqa: E501
-            ETFManager.ISHARES,  # type: ignore
+            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFacts&pageNumber=1",
+            ETFManager.ISHARES,
         )
 
         fund_list_page_1 = fund_list_scraper._get_funds(
@@ -70,7 +70,8 @@ class TestIsharesFundsListScraper:
         fund_list_page_1_names = [x.name for x in fund_list_page_1]
 
         fund_list_page_2 = fund_list_scraper._get_funds(
-            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFacts&pageNumber=2"
+            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFacts&pageNumber=2",
+            continue_session=True,
         )
         fund_list_page_2_names = [x.name for x in fund_list_page_2]
 
