@@ -161,17 +161,24 @@ class Driver:
 
 
 class PaginatedUrl:
-    def __init__(self, url: str, pattern: str, n_page: int = 1):
+    def __init__(
+        self, url: str, pattern: str, n_page: int = 1, limit: Optional[int] = None
+    ):
         self.url = url
         self.pattern = pattern
         self.n_page = n_page
+
+        if limit:
+            self.limit = limit
+        else:
+            self.limit = float("inf")
 
     def __iter__(self):
         return self
 
     def __next__(self):
         new_url = re.sub(self.pattern, str(self.n_page), self.url)
-        if self._page_exists(new_url):
+        if self._page_exists(new_url) and self.n_page <= self.limit:
             logger.info(f"Scraping funds from page: {new_url}")
             self.n_page += 1
             return new_url
@@ -187,7 +194,7 @@ class PaginatedUrl:
 
 class IsharesFundsListScraper:
     def __init__(self, url: str, fund_manager: ETFManager) -> None:
-        self.paginated_url = PaginatedUrl(url, r"(?<=pageNumber=)(\d+)")
+        self.paginated_url = PaginatedUrl(url, r"(?<=pageNumber=)(\d+)", limit=33)
         self.fund_manager = fund_manager
         self.driver = Driver(variant=fund_manager)
 
