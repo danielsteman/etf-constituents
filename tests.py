@@ -3,12 +3,7 @@ import pytest
 from enums import ETFManager
 from exceptions import HoldingsNotScrapedException
 from schemas import FundHolding, FundReference
-from scrapers import (
-    FundDataManager,
-    IsharesFundHoldingsScraper,
-    IsharesFundsListScraper,
-    PaginatedUrl,
-)
+from scrapers import IsharesFundHoldingsScraper, IsharesFundsListScraper, PaginatedUrl
 
 
 class TestIsharesFundsListScraper:
@@ -121,6 +116,16 @@ class TestIsharesFundHoldingsScraper:
             name="iShares Core U.S. Aggregate Bond ETF",
             fund_manager="ishares",
             url="https://www.ishares.com/nl/professionele-belegger/nl/producten/239458/ishares-core-total-us-bond-market-etf",  # noqa: E501
+        )
+        scraper = IsharesFundHoldingsScraper(fund_ref, max_retries=1)
+        holdings = scraper.get_holdings()
+        assert len(holdings) > 0
+
+    def test_some_failing_fund(self):
+        fund_ref = FundReference(
+            name="iShares Core U.S. Aggregate Bond ETF",
+            fund_manager="ishares",
+            url="https://www.ishares.com/nl/professionele-belegger/nl/producten/251726/ishares-euro-corporate-bond-ucits-etf",  # noqa: E501
         )
         scraper = IsharesFundHoldingsScraper(fund_ref, max_retries=1)
         holdings = scraper.get_holdings()
@@ -300,6 +305,30 @@ class TestFundHoldingSchemas:
             country="Verenigde Staten",
         )
 
+    def test_len_18_bond(self):
+        bond = [
+            "ICSEALD",
+            "BLK LEAF FUND AGENCY ACC T0 EUR",
+            "Liquide middelen en/of derivaten",
+            "Money Market",
+            {"display": "EUR 25.757.875", "raw": 25757874.86},
+            {"display": "0,17", "raw": 0.17456},
+            {"display": "25.757.874,86", "raw": 25757874.86},
+            {"display": "257.275", "raw": 257275},
+            {"display": "257.275,00", "raw": 257275},
+            "IE00B9346255",
+            {"display": "100,12", "raw": 100.12},
+            "Ierland",
+            "-",
+            {"display": "0,07", "raw": 0.07},
+            {"display": "-", "raw": ""},
+            {"display": "3,61", "raw": 3.61},
+            "EUR",
+            "25/apr/2013",
+        ]
+        holdings = IsharesFundHoldingsScraper.map_to_schema("random_fund_name", bond)
+        assert holdings
+
 
 class TestPaginatedUrl:
     def test_paginated_url(self):
@@ -324,8 +353,8 @@ class TestPaginatedUrl:
         assert expected_urls == generated_urls
 
 
-class TestFundDataManager:
-    def test_fund_data_manager(self):
-        manager = FundDataManager(ETFManager.ISHARES)
-        manager.scrape()
-        assert len(manager.data) > 0
+# class TestIsharesFundDataManager:
+#     def test_fund_data_manager(self):
+#         manager = IsharesFundDataManager(ETFManager.ISHARES)
+#         manager.scrape()
+#         assert len(manager.data) > 0

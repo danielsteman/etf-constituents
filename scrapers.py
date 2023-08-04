@@ -19,6 +19,7 @@ from functools import wraps
 from typing import List, Optional
 
 import requests
+from pydantic import ValidationError
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
@@ -27,6 +28,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from seleniumwire import webdriver
 
 import schemas
+from db import load_holding
 from enums import ETFManager
 from exceptions import (
     FundsNotScrapedException,
@@ -45,7 +47,10 @@ class ScraperStats:
     n_skipped: int = 0
 
     def __repr__(self):
-        return f"{self.__class__.__name__}(n_scraped: {self.n_scraped}, n_skipped: {self.n_skipped})"
+        return (
+            f"{self.__class__.__name__}(n_scraped: {self.n_scraped}, n_skipped: "
+            "{self.n_skipped})"
+        )
 
 
 def retry(func):
@@ -293,23 +298,40 @@ class IsharesFundHoldingsScraper:
     @staticmethod
     def map_to_schema(fund_name, data: List):
         if len(data) == 18:
-            return schemas.FundHolding(
-                fund_name=fund_name,
-                ticker=data[0],
-                name=data[1],
-                sector=data[3],
-                instrument=data[4],
-                market_value=data[5]["raw"],
-                weight=data[6]["raw"],
-                nominal_value=data[7]["raw"],
-                nominal=data[8]["raw"],
-                cusip=data[9],
-                isin=data[10],
-                sedol=data[11],
-                country=data[13],
-                exchange=data[14],
-                currency=data[15],
-            )
+            try:
+                holding = schemas.FundHolding(
+                    fund_name=fund_name,
+                    ticker=data[0],
+                    name=data[1],
+                    sector=data[3],
+                    instrument=data[4],
+                    market_value=data[5]["raw"],
+                    weight=data[6]["raw"],
+                    nominal_value=data[7]["raw"],
+                    nominal=data[8]["raw"],
+                    cusip=data[9],
+                    isin=data[10],
+                    sedol=data[11],
+                    country=data[13],
+                    exchange=data[14],
+                    currency=data[15],
+                )
+            except ValidationError:
+                holding = schemas.FundHolding(
+                    fund_name=fund_name,
+                    issuer=data[0],
+                    name=data[1],
+                    sector=data[2],
+                    instrument=data[3],
+                    market_value=data[4]["raw"],
+                    weight=data[5]["raw"],
+                    nominal_value=data[6]["raw"],
+                    nominal=data[7]["raw"],
+                    isin=data[9],
+                    country=data[11],
+                    currency=data[16],
+                )
+            return holding
         if len(data) == 17:
             return schemas.FundHolding(
                 fund_name=fund_name,
@@ -386,6 +408,7 @@ class IsharesFundHoldingsScraper:
         pattern = r"^https:\/\/www\.ishares\.com\/nl\/professionele-belegger\/nl\/producten\/.*\/.*\/.*\.ajax\?tab=all&fileType=json&asOfDate=.*$"  # noqa: E501
         match = re.match(pattern, url)
         if match:
+            logger.info(f"Found request to intercept: {url}")
             return True
         return False
 
@@ -415,12 +438,12 @@ class IsharesFundHoldingsScraper:
 
                     try:
                         holdings_dicts = json.loads(decoded_string)["aaData"]
+                        logger.info(f"Length of holding data: {len(holdings_dicts[0])}")
+                        print(holdings_dicts[0])
                     except IndexError:
                         raise HoldingsNotScrapedException(
                             f"Holdings for {req.url} not found in response body."
                         )
-
-                    logger.info(f"Length of holding data: {len(holdings_dicts[0])}")
 
                     for holdings in holdings_dicts:
                         holding_obj = IsharesFundHoldingsScraper.map_to_schema(
@@ -442,7 +465,7 @@ class IsharesFundHoldingsScraper:
         return holdings_list
 
 
-class FundDataManager:
+class IsharesFundDataManager:
     def __init__(self, variant: ETFManager) -> None:
         self.variant = variant
         self.stats = ScraperStats()
@@ -466,6 +489,9 @@ class FundDataManager:
 
         logger.info(f"{self.__class__.__name__} stats: {self.stats}")
 
-    def load(self):
-        # load holdings in database
-        pass
+    def load(self) -> None:
+        n_loaded = 0
+        for holding in self.data:
+            load_holding(holding)
+            n_loaded += 1
+            logger.info(f"Loaded {n_loaded}/{self.stats.n_scraper} into database")
