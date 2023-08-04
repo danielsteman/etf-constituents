@@ -3,7 +3,12 @@ import pytest
 from enums import ETFManager
 from exceptions import HoldingsNotScrapedException
 from schemas import FundHolding, FundReference
-from scrapers import IsharesFundHoldingsScraper, IsharesFundsListScraper, PaginatedUrl
+from scrapers import (
+    FundDataManager,
+    IsharesFundHoldingsScraper,
+    IsharesFundsListScraper,
+    PaginatedUrl,
+)
 
 
 class TestIsharesFundsListScraper:
@@ -317,3 +322,10 @@ class TestPaginatedUrl:
             generated_urls.append(url)
             count += 1
         assert expected_urls == generated_urls
+
+
+class TestFundDataManager:
+    def test_fund_data_manager(self):
+        manager = FundDataManager(ETFManager.ISHARES)
+        manager.scrape()
+        assert len(manager.data) > 0

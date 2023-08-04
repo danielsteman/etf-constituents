@@ -44,6 +44,9 @@ class ScraperStats:
     n_scraped: int = 0
     n_skipped: int = 0
 
+    def __repr__(self):
+        return f"{self.__class__.__name__}(n_scraped: {self.n_scraped}, n_skipped: {self.n_skipped})"
+
 
 def retry(func):
     @wraps(func)
@@ -440,13 +443,28 @@ class IsharesFundHoldingsScraper:
 
 
 class FundDataManager:
-    def __init__(self) -> None:
+    def __init__(self, variant: ETFManager) -> None:
+        self.variant = variant
         self.stats = ScraperStats()
+        self.data = []
 
-    def scrape(self):
-        # get list of fund refs
-        # for each fund ref get holdings
-        pass
+    def scrape(self) -> None:
+        fund_list_scraper = IsharesFundsListScraper(
+            "https://www.ishares.com/nl/professionele-belegger/nl/producten/etf-investments#/?productView=all&dataView=keyFacts&pageNumber=1",
+            self.variant,
+        )
+        fund_list = fund_list_scraper.get_all_funds()
+        for fund in fund_list:
+            scraper = IsharesFundHoldingsScraper(fund, skip_empty_funds=True)
+            holdings = scraper.get_holdings()
+
+            if holdings:
+                self.data.append(holdings)
+                self.stats.n_scraped += 1
+            else:
+                self.stats.n_skipped += 1
+
+        logger.info(f"{self.__class__.__name__} stats: {self.stats}")
 
     def load(self):
         # load holdings in database
