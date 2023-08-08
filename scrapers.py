@@ -439,7 +439,6 @@ class IsharesFundHoldingsScraper:
                     try:
                         holdings_dicts = json.loads(decoded_string)["aaData"]
                         logger.info(f"Length of holding data: {len(holdings_dicts[0])}")
-                        print(holdings_dicts[0])
                     except IndexError:
                         raise HoldingsNotScrapedException(
                             f"Holdings for {req.url} not found in response body."
