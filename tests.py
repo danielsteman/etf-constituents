@@ -329,6 +329,26 @@ class TestFundHoldingSchemas:
         holdings = IsharesFundHoldingsScraper.map_to_schema("random_fund_name", bond)
         assert holdings
 
+    def test_len_14_fund(self):
+        fund = [
+            "FSLR",
+            "FIRST SOLAR INC",
+            "EQUITY",
+            "IT",
+            "Aandelen",
+            {"display": "USD 418.342.043", "raw": 418342042.8},
+            {"display": "8,75", "raw": 8.75011},
+            {"display": "418.342.042,80", "raw": 418342042.8},
+            {"display": "2.138.763", "raw": 2138763},
+            "US3364331070",
+            {"display": "195,60", "raw": 195.6},
+            "Verenigde Staten",
+            "NASDAQ",
+            "USD",
+        ]
+        holdings = IsharesFundHoldingsScraper.map_to_schema("random_fund_name", fund)
+        assert holdings
+
 
 class TestPaginatedUrl:
     def test_paginated_url(self):

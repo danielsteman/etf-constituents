@@ -354,6 +354,22 @@ class IsharesFundHoldingsScraper:
                 exchange=data[11],
                 currency=data[12],
             )
+        elif len(data) == 14:
+            return schemas.FundHolding(
+                fund_name=fund_name,
+                ticker=data[0],
+                name=data[1],
+                sector=data[3],
+                instrument=data[4],
+                market_value=data[5]["raw"],
+                weight=data[6]["raw"],
+                nominal_value=data[7]["raw"],
+                nominal=data[8]["raw"],
+                isin=data[9],
+                country=data[11],
+                exchange=data[12],
+                currency=data[13],
+            )
         elif len(data) == 26:
             return schemas.FundHolding(
                 fund_name=fund_name,
@@ -388,8 +404,8 @@ class IsharesFundHoldingsScraper:
             )
         else:
             raise UnsupportedFundHoldingData(
-                f"Data of length {len(data)} will probably not fit in the `FundHolding`\
-                schema."
+                f"Data of length {len(data)} will probably not fit in the `FundHolding`"
+                "schema."
             )
 
     def should_be_intercepted(self, url: str) -> bool:
@@ -441,10 +457,8 @@ class IsharesFundHoldingsScraper:
         if not holdings_list:
             if self.skip_empty_funds:
                 logger.warning(
-                    f"""
-                    Did not find requests to intercept.
-                    Skipping this fund: {self.fund_ref}.
-                    """
+                    "Did not find requests to intercept."
+                    f"Skipping this fund: {self.fund_ref}."
                 )
             else:
                 raise HoldingsNotScrapedException("Did not find requests to intercept.")
