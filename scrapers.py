@@ -1,15 +1,3 @@
-"""
-[done] Pass url to funds overview
-[done] Scrape urls that lead to fund pages
-[done] Pass url to fund page
-[done] Capture request for holdings
-[done] Parse response body
-[done] Load each fund into an object
-
-Issues:
-scraper.get_holdings() sometimes returns an empty list
-"""
-
 import gzip
 import json
 import re
