@@ -494,4 +494,4 @@ class IsharesFundDataManager:
         for holding in self.data:
             load_holding(holding)
             n_loaded += 1
-            logger.info(f"Loaded {n_loaded}/{self.stats.n_scraper} into database")
+            logger.info(f"Loaded {n_loaded}/{self.stats.n_scraped} into database")
